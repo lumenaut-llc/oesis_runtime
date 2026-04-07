@@ -1,0 +1,107 @@
+{
+  "parcel_id": "parcel_123",
+  "computed_at": "2026-03-30T19:46:00Z",
+  "evidence_mode": "insufficient",
+  "inference_basis": "insufficient",
+  "confidence": 0.30,
+  "headline": "Estimate uses limited local evidence with low parcel certainty.",
+  "confidence_band": "low",
+  "top_drivers": [
+    "Indoor gas-resistance trend shows a moderate change."
+  ],
+  "top_limitations": [
+    "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+    "Parcel installation context is missing, so siting relevance and parcel priors cannot improve interpretation.",
+    "Confidence is limited because the current estimate relies on sparse or weakly representative evidence."
+  ],
+  "source_breakdown": {
+    "local": true,
+    "shared": false,
+    "public": false,
+    "parcel_context": false,
+    "system": true
+  },
+  "grouped_contributions": {
+    "local": [
+      {
+        "contribution_id": "local_siting_limit",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "limitation",
+        "summary": "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.72,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "missing_flood_evidence",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "limitation",
+        "summary": "No flood-capable local sensor or public flood context is present.",
+        "hazards": [
+          "flood"
+        ],
+        "weight": 0.58,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "local_gas_trend",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "driver",
+        "summary": "Indoor gas-resistance trend shows a moderate change.",
+        "hazards": [
+          "smoke"
+        ],
+        "weight": 0.32,
+        "visibility": "homeowner_safe"
+      }
+    ],
+    "shared": [],
+    "public": [],
+    "parcel_context": [],
+    "system": [
+      {
+        "contribution_id": "low_confidence_gate",
+        "source_class": "system",
+        "source_name": "confidence_gate",
+        "role": "limitation",
+        "summary": "Confidence is limited because the current estimate relies on sparse or weakly representative evidence.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.68,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "missing_parcel_context",
+        "source_class": "system",
+        "source_name": "parcel_123",
+        "role": "limitation",
+        "summary": "Parcel installation context is missing, so siting relevance and parcel priors cannot improve interpretation.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.64,
+        "visibility": "homeowner_safe"
+      }
+    ]
+  },
+  "source_modes": [
+    "homeowner_node"
+  ],
+  "freshness": {
+    "latest_observation_at": "2026-03-30T19:45:00Z",
+    "seconds_since_latest": 60,
+    "stale": false
+  }
+}

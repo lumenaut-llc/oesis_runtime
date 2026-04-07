@@ -1,0 +1,10 @@
+{
+  "consent_record_id": "consent_01HT000001",
+  "parcel_id": "parcel_123",
+  "account_id": "acct_123",
+  "sharing_mode": "neighborhood_aggregate",
+  "action": "enabled",
+  "effective_at": "2026-03-30T20:15:00Z",
+  "notice_version": "sharing-notice.v1",
+  "source_surface": "parcel_settings_ui"
+}

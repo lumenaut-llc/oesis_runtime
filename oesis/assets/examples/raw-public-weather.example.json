@@ -1,0 +1,10 @@
+{
+  "source_name": "demo_regional_weather_v1",
+  "observed_at": "2026-03-30T19:40:00Z",
+  "parcel_id": "parcel_demo_001",
+  "regional_temperature_c": 31.0,
+  "regional_relative_humidity_pct": 34.0,
+  "advisories": [
+    "warm_afternoon"
+  ]
+}

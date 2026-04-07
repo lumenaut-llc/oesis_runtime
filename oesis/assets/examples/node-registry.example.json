@@ -1,0 +1,54 @@
+{
+  "updated_at": "2026-04-01T18:00:00Z",
+  "parcel_id": "parcel_123",
+  "nodes": [
+    {
+      "node_id": "bench-air-01",
+      "node_class": "indoor_air",
+      "hardware_family": "bench-air-node",
+      "schema_version": "oesis.bench-air.v1",
+      "observation_family": "air.node.snapshot",
+      "location_mode": "indoor",
+      "install_role": "indoor_reference",
+      "transport_mode": "https_push",
+      "power_mode": "usb_c_mains",
+      "calibration_state": "verified",
+      "installed_at": "2026-03-29T18:00:00Z",
+      "last_seen_at": "2026-04-01T17:58:00Z",
+      "enabled": true,
+      "firmware_version": "0.1.0"
+    },
+    {
+      "node_id": "mast-lite-01",
+      "node_class": "outdoor_reference",
+      "hardware_family": "mast-lite",
+      "schema_version": "oesis.bench-air.v1",
+      "observation_family": "air.node.snapshot",
+      "location_mode": "sheltered",
+      "install_role": "parcel_edge_reference",
+      "transport_mode": "https_push",
+      "power_mode": "usb_c_mains",
+      "calibration_state": "provisional",
+      "installed_at": "2026-03-30T17:20:00Z",
+      "last_seen_at": "2026-04-01T17:57:00Z",
+      "enabled": true,
+      "firmware_version": "0.1.0"
+    },
+    {
+      "node_id": "flood-node-01",
+      "node_class": "low_point_flood",
+      "hardware_family": "flood-node",
+      "schema_version": "oesis.flood-node.v1",
+      "observation_family": "flood.low_point.snapshot",
+      "location_mode": "outdoor",
+      "install_role": "runoff_low_point",
+      "transport_mode": "https_push",
+      "power_mode": "usb_c_mains",
+      "calibration_state": "provisional",
+      "installed_at": "2026-03-31T18:10:00Z",
+      "last_seen_at": "2026-04-01T17:53:00Z",
+      "enabled": false,
+      "firmware_version": "0.1.0"
+    }
+  ]
+}

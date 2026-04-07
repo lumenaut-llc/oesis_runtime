@@ -1,0 +1,31 @@
+{
+  "default_policy": {
+    "fresh_max_age_seconds": 1800,
+    "aging_max_age_seconds": 7200,
+    "stale_max_age_seconds": 21600,
+    "hazard_multiplier": {
+      "fresh": 0.85,
+      "aging": 0.65,
+      "stale": 0.35,
+      "expired": 0.0
+    },
+    "confidence_adjustment": {
+      "fresh": 0.18,
+      "aging": 0.08,
+      "stale": 0.0,
+      "expired": -0.05
+    }
+  },
+  "source_overrides": {
+    "demo_regional_weather_v1": {
+      "fresh_max_age_seconds": 1800,
+      "aging_max_age_seconds": 7200,
+      "stale_max_age_seconds": 21600
+    },
+    "demo_regional_smoke_v1": {
+      "fresh_max_age_seconds": 1200,
+      "aging_max_age_seconds": 5400,
+      "stale_max_age_seconds": 14400
+    }
+  }
+}

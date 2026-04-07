@@ -1,0 +1,127 @@
+{
+  "parcel_id": "parcel_123",
+  "computed_at": "2026-03-30T19:46:00Z",
+  "shelter_status": "unknown",
+  "reentry_status": "unknown",
+  "egress_status": "unknown",
+  "asset_risk_status": "unknown",
+  "confidence": 0.30,
+  "evidence_mode": "insufficient",
+  "inference_basis": "insufficient",
+  "explanation_payload": {
+    "headline": "Estimate uses limited local evidence with low parcel certainty.",
+    "basis": {
+      "evidence_mode": "insufficient",
+      "inference_basis": "insufficient",
+      "confidence_band": "low"
+    },
+    "drivers": [
+      "Indoor gas-resistance trend shows a moderate change."
+    ],
+    "limitations": [
+      "The local node is indoor and does not represent parcel-wide outdoor conditions.",
+      "Parcel installation context is missing, so siting relevance and parcel priors cannot improve interpretation.",
+      "Confidence is limited because the current estimate relies on sparse or weakly representative evidence."
+    ],
+    "evidence_contributions": [
+      {
+        "contribution_id": "local_gas_trend",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "driver",
+        "summary": "Indoor gas-resistance trend shows a moderate change.",
+        "hazards": [
+          "smoke"
+        ],
+        "weight": 0.32,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "local_siting_limit",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "limitation",
+        "summary": "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.72,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "missing_parcel_context",
+        "source_class": "system",
+        "source_name": "parcel_123",
+        "role": "limitation",
+        "summary": "Parcel installation context is missing, so siting relevance and parcel priors cannot improve interpretation.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.64,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "missing_flood_evidence",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "limitation",
+        "summary": "No flood-capable local sensor or public flood context is present.",
+        "hazards": [
+          "flood"
+        ],
+        "weight": 0.58,
+        "visibility": "homeowner_safe"
+      },
+      {
+        "contribution_id": "low_confidence_gate",
+        "source_class": "system",
+        "source_name": "confidence_gate",
+        "role": "limitation",
+        "summary": "Confidence is limited because the current estimate relies on sparse or weakly representative evidence.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.68,
+        "visibility": "homeowner_safe"
+      }
+    ],
+    "source_breakdown": {
+      "local": true,
+      "shared": false,
+      "public": false,
+      "parcel_context": false,
+      "system": true
+    }
+  },
+  "reasons": [
+    "Local gas-resistance trend shows a moderate change, but it is not a direct smoke concentration measurement.",
+    "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+    "No flood-capable local sensor or public flood context is present, so flood-related outputs remain unknown.",
+    "Confidence is limited because the current decision uses sparse single-node evidence."
+  ],
+  "hazards": {
+    "smoke_probability": 0.12,
+    "flood_probability": 0.00,
+    "heat_probability": 0.02
+  },
+  "freshness": {
+    "latest_observation_at": "2026-03-30T19:45:00Z",
+    "seconds_since_latest": 60,
+    "stale": false
+  },
+  "provenance_summary": {
+    "observation_count": 1,
+    "source_modes": [
+      "homeowner_node"
+    ],
+    "observation_refs": [
+      "obs_example_0001"
+    ]
+  }
+}

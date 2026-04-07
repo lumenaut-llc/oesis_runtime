@@ -1,0 +1,34 @@
+{
+  "schema_version": "oesis.bench-air.v1",
+  "node_id": "bench-air-01",
+  "observed_at": "2026-03-30T19:45:00Z",
+  "firmware_version": "0.1.0",
+  "location_mode": "indoor",
+  "sensors": {
+    "sht45": {
+      "present": true,
+      "temperature_c": 23.4,
+      "relative_humidity_pct": 41.8
+    },
+    "bme680": {
+      "present": true,
+      "temperature_c": 24.1,
+      "relative_humidity_pct": 40.9,
+      "pressure_hpa": 1012.6,
+      "gas_resistance_ohm": 145230
+    }
+  },
+  "derived": {
+    "temperature_c_primary": 23.4,
+    "relative_humidity_pct_primary": 41.8,
+    "pressure_hpa": 1012.6,
+    "voc_trend_source": "gas_resistance_ohm"
+  },
+  "health": {
+    "uptime_s": 1820,
+    "wifi_connected": true,
+    "free_heap_bytes": 214332,
+    "read_failures_total": 0,
+    "last_error": null
+  }
+}

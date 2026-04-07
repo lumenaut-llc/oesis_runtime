@@ -1,0 +1,28 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "site_profile": {
+    "structure_type": "single_family",
+    "parcel_area_m2": 740,
+    "climate_zone": "unknown",
+    "notes": null
+  },
+  "node_installations": [
+    {
+      "node_id": "bench-air-01",
+      "node_type": "bench_air_node",
+      "location_mode": "indoor",
+      "install_role": "reference_indoor",
+      "placement_notes": "office near hallway",
+      "height_m": 1.2,
+      "exposure_bias_flags": [
+        "hvac_possible"
+      ],
+      "installed_at": "2026-03-30T18:00:00Z"
+    }
+  ],
+  "parcel_priors": {
+    "heat_retention_class": "moderate",
+    "runoff_tendency_class": "low",
+    "smoke_exposure_class": "moderate"
+  }
+}

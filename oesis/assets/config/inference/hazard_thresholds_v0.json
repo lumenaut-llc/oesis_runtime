@@ -1,0 +1,64 @@
+{
+  "smoke": {
+    "base_probability": 0.08,
+    "gas_resistance_bands": [
+      {
+        "lt": 50000,
+        "probability": 0.24
+      },
+      {
+        "lt": 100000,
+        "probability": 0.18
+      },
+      {
+        "lt": 180000,
+        "probability": 0.12
+      }
+    ],
+    "default_probability": 0.08
+  },
+  "heat": {
+    "base_probability": 0.08,
+    "temperature_bands": [
+      {
+        "gte": 40,
+        "probability": 0.68
+      },
+      {
+        "gte": 34,
+        "probability": 0.5
+      },
+      {
+        "gte": 29,
+        "probability": 0.3
+      },
+      {
+        "gte": 24,
+        "probability": 0.16
+      }
+    ],
+    "indoor_penalty": 0.06,
+    "sheltered_penalty": 0.03
+  },
+  "sensor_penalties": {
+    "wifi_disconnected": 0.01,
+    "read_failures": 0.05
+  },
+  "status_mapping": {
+    "default_unknown_floor": 0.2,
+    "heat_unknown_floor": 0.25,
+    "flood_unknown_floor": 0.1,
+    "caution_floor": 0.4,
+    "unsafe_floor": 0.7
+  },
+  "state_rules": {
+    "shelter_hazard_floor": 0.4,
+    "shelter_confidence_floor": 0.45,
+    "heat_caution_confidence_floor": 0.4,
+    "asset_risk_hazard_floor": 0.5,
+    "asset_risk_confidence_floor": 0.45,
+    "egress_hazard_floor": 0.7,
+    "egress_confidence_floor": 0.55,
+    "insufficient_confidence_floor": 0.35
+  }
+}

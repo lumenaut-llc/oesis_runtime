@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-03-30T20:50:00Z",
+  "parcel_id": "parcel_001",
+  "sharing": {
+    "parcel_id": "parcel_001",
+    "updated_at": "2026-03-30T20:15:00Z",
+    "private_only": false,
+    "network_assist": false,
+    "neighborhood_aggregate": true,
+    "research_or_pilot": false,
+    "notice_version": "sharing-notice.v1",
+    "revocation_pending": false
+  },
+  "rights_requests": [
+    {
+      "request_id": "rights_01HT000001",
+      "parcel_id": "parcel_001",
+      "account_id": "acct_123",
+      "request_type": "export",
+      "status": "submitted",
+      "created_at": "2026-03-30T20:20:00Z",
+      "scope": [
+        "private_parcel_data",
+        "derived_parcel_state"
+      ],
+      "requested_from_surface": "parcel_settings_ui"
+    }
+  ],
+  "access_events": [
+    {
+      "event_id": "access_01HT000001",
+      "occurred_at": "2026-03-30T20:40:00Z",
+      "actor": "parcel-platform-api",
+      "action": "view_parcel_state",
+      "parcel_id": "parcel_001",
+      "data_classes": [
+        "private_parcel_data",
+        "derived_parcel_state"
+      ],
+      "justification": "parcel_view_request"
+    }
+  ],
+  "parcel_state": {
+    "parcel_id": "parcel_001",
+    "computed_at": "2026-03-30T19:46:00Z",
+    "shelter_status": "unknown",
+    "reentry_status": "unknown",
+    "egress_status": "unknown",
+    "asset_risk_status": "unknown",
+    "confidence": 0.3,
+    "evidence_mode": "insufficient",
+    "reasons": [
+      "Local gas-resistance trend shows a moderate change, but it is not a direct smoke concentration measurement."
+    ],
+    "hazards": {
+      "smoke_probability": 0.12,
+      "flood_probability": 0.0,
+      "heat_probability": 0.02
+    },
+    "freshness": {
+      "latest_observation_at": "2026-03-30T19:45:00Z",
+      "seconds_since_latest": 60,
+      "stale": false
+    },
+    "provenance_summary": {
+      "observation_count": 1,
+      "source_modes": [
+        "homeowner_node"
+      ],
+      "observation_refs": [
+        "obs_example_0001"
+      ]
+    }
+  }
+}

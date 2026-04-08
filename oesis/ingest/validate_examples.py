@@ -4,9 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR
-
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR
 
 
 class ValidationError(Exception):

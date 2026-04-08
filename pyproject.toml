@@ -6,7 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "oesis-runtime"
 version = "0.1.0"
 description = "Reference runtime services for Open Environmental Sensing and Inference System."
+readme = "README.md"
 requires-python = ">=3.11"
+
+[project.urls]
+Homepage = "https://github.com/lumenaut-llc/oesis-runtime"
+Repository = "https://github.com/lumenaut-llc/oesis-runtime"
+Documentation = "https://github.com/lumenaut-llc/oesis-program-specs"
 
 [tool.setuptools.packages.find]
 include = ["oesis*"]

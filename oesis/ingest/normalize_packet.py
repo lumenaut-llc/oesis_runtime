@@ -8,11 +8,9 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR
 
 from .validate_examples import ValidationError, load_json, validate_node_observation
-
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
 
 
 def now_iso() -> str:

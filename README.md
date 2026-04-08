@@ -2,6 +2,20 @@
 
 Standalone runtime for the Open Environmental Sensing and Inference System reference path: ingest, inference, parcel platform, and smoke fixtures. The program specifications and contracts live in the sibling repository `../oesis-program-specs` (or your checkout of that tree).
 
+## Setup
+
+From this repository root (recommended: use a virtual environment):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e .
+```
+
+After that, `python3 -m oesis...` and the `Makefile` targets work from any current working directory.
+
+Keep packaged examples under `oesis/assets/examples/` in sync with `contracts/examples/` in **oesis-program-specs** when you change contracts.
+
 ## v0.1 product slice (frozen scope)
 
 Implementation and acceptance tests target:
@@ -25,3 +39,4 @@ Implementation and acceptance tests target:
 
 - `OESIS_CONTRACTS_BUNDLE_DIR` — directory containing an `examples/` subtree to use instead of `oesis/assets/examples`.
 - `OESIS_INFERENCE_CONFIG_DIR` — directory with `public_context_policy.json`, `hazard_thresholds_v0.json`, `trust_gates_v0.json` instead of `oesis/assets/config/inference/`.
+- HTTP smoke (`make oesis-http-check`): `OESIS_HTTP_INGEST_PORT`, `OESIS_HTTP_INFERENCE_PORT`, `OESIS_HTTP_PARCEL_PORT` (defaults `8787`–`8789`); `OESIS_HTTP_HEALTH_RETRIES` (default `30`); `OESIS_HTTP_HEALTH_INTERVAL_S` (default `0.2`).

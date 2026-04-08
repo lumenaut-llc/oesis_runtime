@@ -6,9 +6,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR
-
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR
 
 
 class SharedMapError(Exception):

@@ -4,15 +4,15 @@ import argparse
 import json
 import sys
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR, INFERENCE_CONFIG_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR, INFERENCE_CONFIG_DIR
 
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
 CONFIG_DIR = INFERENCE_CONFIG_DIR
 PUBLIC_CONTEXT_POLICY_PATH = CONFIG_DIR / "public_context_policy.json"
-HAZARD_THRESHOLDS_PATH = CONFIG_DIR / "hazard_thresholds_v0.json"
-TRUST_GATES_PATH = CONFIG_DIR / "trust_gates_v0.json"
+_hazard_thresholds()_PATH = CONFIG_DIR / "hazard_thresholds_v0.json"
+_trust_gates()_PATH = CONFIG_DIR / "trust_gates_v0.json"
 
 
 class InferenceError(Exception):
@@ -98,30 +98,25 @@ def validate_shared_neighborhood_signal(payload: dict):
             raise InferenceError(f"shared neighborhood signal missing required field: {field}")
 
 
-def load_public_context_policy() -> dict:
+@lru_cache(maxsize=1)
+def _public_context_policy() -> dict:
     return load_json(PUBLIC_CONTEXT_POLICY_PATH)
 
 
-PUBLIC_CONTEXT_POLICY = load_public_context_policy()
-
-
-def load_hazard_thresholds() -> dict:
+@lru_cache(maxsize=1)
+def _hazard_thresholds() -> dict:
     return load_json(HAZARD_THRESHOLDS_PATH)
 
 
-HAZARD_THRESHOLDS = load_hazard_thresholds()
-
-
-def load_trust_gates() -> dict:
+@lru_cache(maxsize=1)
+def _trust_gates() -> dict:
     return load_json(TRUST_GATES_PATH)
 
 
-TRUST_GATES = load_trust_gates()
-
-
 def get_policy_for_source(source_name: str) -> dict:
-    default_policy = PUBLIC_CONTEXT_POLICY["default_policy"]
-    override = PUBLIC_CONTEXT_POLICY.get("source_overrides", {}).get(source_name, {})
+    policy = _public_context_policy()
+    default_policy = policy["default_policy"]
+    override = policy.get("source_overrides", {}).get(source_name, {})
     return {
         "fresh_max_age_seconds": override.get("fresh_max_age_seconds", default_policy["fresh_max_age_seconds"]),
         "aging_max_age_seconds": override.get("aging_max_age_seconds", default_policy["aging_max_age_seconds"]),
@@ -348,9 +343,9 @@ def derive_hazards(
     values = payload["values"]
     health = payload["health"]
     context = classify_local_context(payload, parcel_context=parcel_context)
-    smoke_config = HAZARD_THRESHOLDS["smoke"]
-    heat_config = HAZARD_THRESHOLDS["heat"]
-    sensor_penalties = HAZARD_THRESHOLDS["sensor_penalties"]
+    smoke_config = _hazard_thresholds()["smoke"]
+    heat_config = _hazard_thresholds()["heat"]
+    sensor_penalties = _hazard_thresholds()["sensor_penalties"]
     parcel_priors = parcel_context.get("parcel_priors", {}) if parcel_context else {}
 
     smoke_probability = smoke_config["base_probability"]
@@ -767,11 +762,11 @@ def build_evidence_contributions(
                 role="limitation",
                 summary="The latest local observation is aging out and may no longer reflect current parcel conditions.",
                 hazards=["smoke", "heat", "flood"],
-                weight=TRUST_GATES["freshness_gate"]["stale_weight"],
+                weight=_trust_gates()["freshness_gate"]["stale_weight"],
             )
         )
 
-    if confidence < TRUST_GATES["confidence_gate"]["low_confidence_threshold"]:
+    if confidence < _trust_gates()["confidence_gate"]["low_confidence_threshold"]:
         contributions.append(
             make_evidence_contribution(
                 contribution_id="low_confidence_gate",
@@ -780,7 +775,7 @@ def build_evidence_contributions(
                 role="limitation",
                 summary="Confidence is limited because the current estimate relies on sparse or weakly representative evidence.",
                 hazards=["smoke", "heat", "flood"],
-                weight=TRUST_GATES["confidence_gate"]["weight"],
+                weight=_trust_gates()["confidence_gate"]["weight"],
             )
         )
 
@@ -790,7 +785,7 @@ def build_evidence_contributions(
     strongest_shared_smoke = shared_context["hazards"]["smoke_probability"] if shared_context else 0.0
     strongest_shared_heat = shared_context["hazards"]["heat_probability"] if shared_context else 0.0
 
-    disagreement = TRUST_GATES["cross_source_disagreement"]
+    disagreement = _trust_gates()["cross_source_disagreement"]
 
     if (
         gas_resistance is not None
@@ -927,8 +922,8 @@ def infer_parcel_state(
         shared_neighborhood_context=shared_context,
         public_context=public_context,
     )
-    status_config = HAZARD_THRESHOLDS["status_mapping"]
-    state_rules = HAZARD_THRESHOLDS["state_rules"]
+    status_config = _hazard_thresholds()["status_mapping"]
+    state_rules = _hazard_thresholds()["state_rules"]
 
     smoke_status = status_from_probability(
         hazards["smoke_probability"],

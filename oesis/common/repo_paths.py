@@ -19,9 +19,11 @@ if _inference_config_dir:
 else:
     INFERENCE_CONFIG_DIR = INFERENCE_CONFIG_ROOT
 
-# Backward-compatible aliases while the runtime finishes decoupling from old docs-era names.
+# Optional explicit names for tooling.
 RUNTIME_ROOT = PACKAGE_ROOT
 RUNTIME_ASSETS_DIR = ASSETS_DIR
 RUNTIME_EXAMPLES_DIR = EXAMPLES_DIR
 RUNTIME_INFERENCE_CONFIG_DIR = INFERENCE_CONFIG_ROOT
+
+# Deprecated: use EXAMPLES_DIR (removed after split from program-specs).
 DOCS_EXAMPLES_DIR = EXAMPLES_DIR

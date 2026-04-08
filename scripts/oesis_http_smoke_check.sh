@@ -4,6 +4,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+: "${OESIS_HTTP_INGEST_PORT:=8787}"
+: "${OESIS_HTTP_INFERENCE_PORT:=8788}"
+: "${OESIS_HTTP_PARCEL_PORT:=8789}"
+: "${OESIS_HTTP_HEALTH_RETRIES:=30}"
+: "${OESIS_HTTP_HEALTH_INTERVAL_S:=0.2}"
+
 INGEST_PID=""
 INFERENCE_PID=""
 PARCEL_PID=""
@@ -18,34 +24,41 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[oesis-http-check] starting ingest api"
-python3 -m oesis.ingest.serve_ingest_api --host 127.0.0.1 --port 8787 >/tmp/oesis-ingest.log 2>&1 &
+echo "[oesis-http-check] starting ingest api (port ${OESIS_HTTP_INGEST_PORT})"
+python3 -m oesis.ingest.serve_ingest_api --host 127.0.0.1 --port "${OESIS_HTTP_INGEST_PORT}" >/tmp/oesis-ingest.log 2>&1 &
 INGEST_PID=$!
 
-echo "[oesis-http-check] starting inference api"
-python3 -m oesis.inference.serve_inference_api --host 127.0.0.1 --port 8788 >/tmp/oesis-inference.log 2>&1 &
+echo "[oesis-http-check] starting inference api (port ${OESIS_HTTP_INFERENCE_PORT})"
+python3 -m oesis.inference.serve_inference_api --host 127.0.0.1 --port "${OESIS_HTTP_INFERENCE_PORT}" >/tmp/oesis-inference.log 2>&1 &
 INFERENCE_PID=$!
 
-echo "[oesis-http-check] starting parcel-platform api"
-python3 -m oesis.parcel_platform.serve_parcel_api --host 127.0.0.1 --port 8789 >/tmp/oesis-parcel.log 2>&1 &
+echo "[oesis-http-check] starting parcel-platform api (port ${OESIS_HTTP_PARCEL_PORT})"
+python3 -m oesis.parcel_platform.serve_parcel_api --host 127.0.0.1 --port "${OESIS_HTTP_PARCEL_PORT}" >/tmp/oesis-parcel.log 2>&1 &
 PARCEL_PID=$!
 
-sleep 1
-
-echo "[oesis-http-check] checking health endpoints"
-curl -s http://127.0.0.1:8787/v1/ingest/health >/tmp/oesis-ingest-health.json
-curl -s http://127.0.0.1:8788/v1/inference/health >/tmp/oesis-inference-health.json
-curl -s http://127.0.0.1:8789/v1/parcel-platform/health >/tmp/oesis-parcel-health.json
+echo "[oesis-http-check] waiting for health endpoints"
+for i in $(seq 1 "${OESIS_HTTP_HEALTH_RETRIES}"); do
+  if curl -sf "http://127.0.0.1:${OESIS_HTTP_INGEST_PORT}/v1/ingest/health" >/tmp/oesis-ingest-health.json \
+    && curl -sf "http://127.0.0.1:${OESIS_HTTP_INFERENCE_PORT}/v1/inference/health" >/tmp/oesis-inference-health.json \
+    && curl -sf "http://127.0.0.1:${OESIS_HTTP_PARCEL_PORT}/v1/parcel-platform/health" >/tmp/oesis-parcel-health.json; then
+    break
+  fi
+  if [[ "$i" -eq "${OESIS_HTTP_HEALTH_RETRIES}" ]]; then
+    echo "[oesis-http-check] ERROR: services did not become healthy in time (see /tmp/oesis-*.log)" >&2
+    exit 1
+  fi
+  sleep "${OESIS_HTTP_HEALTH_INTERVAL_S}"
+done
 
 NODE_PACKET_EXAMPLE="$(python3 - <<'PY'
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR
 
-print((DOCS_EXAMPLES_DIR / "node-observation.example.json").resolve())
+print((EXAMPLES_DIR / "node-observation.example.json").resolve())
 PY
 )"
 
 echo "[oesis-http-check] posting node packet to ingest api"
-curl -s -X POST http://127.0.0.1:8787/v1/ingest/node-packets \
+curl -s -X POST "http://127.0.0.1:${OESIS_HTTP_INGEST_PORT}/v1/ingest/node-packets" \
   -H 'Content-Type: application/json' \
   -H 'X-OESIS-Parcel-Id: parcel_demo_http' \
   --data-binary @"$NODE_PACKET_EXAMPLE" \
@@ -78,7 +91,7 @@ Path("/tmp/oesis-inference-request.json").write_text(
 )
 PY
 
-curl -s -X POST http://127.0.0.1:8788/v1/inference/parcel-state \
+curl -s -X POST "http://127.0.0.1:${OESIS_HTTP_INFERENCE_PORT}/v1/inference/parcel-state" \
   -H 'Content-Type: application/json' \
   -H 'X-OESIS-Computed-At: 2026-03-30T19:46:00Z' \
   --data-binary @/tmp/oesis-inference-request.json \
@@ -96,7 +109,7 @@ Path("/tmp/oesis-parcel-state-from-http.json").write_text(
 )
 PY
 
-curl -s -X POST http://127.0.0.1:8789/v1/parcels/state/view \
+curl -s -X POST "http://127.0.0.1:${OESIS_HTTP_PARCEL_PORT}/v1/parcels/state/view" \
   -H 'Content-Type: application/json' \
   --data-binary @/tmp/oesis-parcel-state-from-http.json \
   >/tmp/oesis-parcel-response.json

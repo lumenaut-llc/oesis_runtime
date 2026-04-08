@@ -6,12 +6,9 @@ import sys
 import uuid
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR
 
 from .validate_examples import ValidationError, load_json, require, require_number, require_type
-
-
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
 
 
 def clamp_probability(value: float) -> float:

@@ -11,15 +11,13 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR, REPO_ROOT
+from oesis.common.repo_paths import EXAMPLES_DIR, REPO_ROOT
 
 from .format_evidence_summary import build_evidence_summary
 from .format_parcel_view import ParcelViewError, build_parcel_view, validate_sharing_settings
 from .run_retention_cleanup import run_cleanup
 from .summarize_reference_state import load_optional_json as load_optional_reference_json
 from .summarize_reference_state import summarize as summarize_reference_state
-
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
 DEFAULT_SHARING = json.loads((EXAMPLES_DIR / "sharing-settings.example.json").read_text(encoding="utf-8"))
 DEFAULT_RIGHTS_REQUEST = json.loads((EXAMPLES_DIR / "rights-request.example.json").read_text(encoding="utf-8"))
 DEFAULT_SHARING_STORE = json.loads((EXAMPLES_DIR / "sharing-store.example.json").read_text(encoding="utf-8"))

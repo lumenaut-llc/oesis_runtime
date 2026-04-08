@@ -5,12 +5,9 @@ import json
 import sys
 from pathlib import Path
 
-from oesis.common.repo_paths import DOCS_EXAMPLES_DIR
+from oesis.common.repo_paths import EXAMPLES_DIR
 
 from .format_parcel_view import ParcelViewError, load_json, validate_parcel_state
-
-
-EXAMPLES_DIR = DOCS_EXAMPLES_DIR
 
 
 def group_contributions(evidence_contributions: list[dict]) -> dict:

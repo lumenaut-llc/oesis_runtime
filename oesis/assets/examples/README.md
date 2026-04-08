@@ -1,24 +1,21 @@
-# Data Model Examples
+# Example JSON payloads (runtime)
 
-These JSON example payloads are intended as implementation scaffolding for the first MVP contracts.
+These files are **execution fixtures** shipped with `oesis-runtime` for demos, validation, and smoke tests. They are aligned with the canonical contracts in the **program-specs** repository.
 
-- `node-observation.example.json`
-  Example of a raw node packet from `oesis.bench-air.v1`.
-- `node-registry.example.json`
-  Example of a parcel-scoped registry binding multiple hardware nodes into one system.
-- `normalized-observation.example.json`
-  Example of the canonical observation object emitted by the ingest boundary.
-- `parcel-state.example.json`
-  Example of a homeowner-facing parcel-state snapshot after inference.
-- `parcel-context.example.json`
-  Example of parcel installation context and parcel priors supplied to inference.
-- `public-context.example.json`
-  Example of optional public external context supplied to inference as supporting evidence.
-- `raw-public-weather.example.json`
-  Example of a source-shaped public weather payload before adapter normalization.
-- `raw-public-smoke.example.json`
-  Example of a source-shaped public smoke payload before adapter normalization.
-- `shared-neighborhood-signal.example.json`
-  Example of a delayed, thresholded neighborhood signal object derived from opt-in shared contributions.
+**Canonical schemas and contract prose** live in the sibling checkout **`../oesis-program-specs`** under:
 
-These examples should evolve with the prose contracts and the matching JSON Schema files in `../schemas/`.
+- `contracts/schemas/` — JSON Schema definitions
+- `contracts/*.md` — schema documentation
+- `contracts/examples/` — published examples (keep runtime copies in sync when contracts change)
+
+Runtime files here include:
+
+- `node-observation.example.json` — raw node packet from `oesis.bench-air.v1`.
+- `node-registry.example.json` — parcel-scoped registry binding multiple hardware nodes.
+- `normalized-observation.example.json` — canonical observation after ingest.
+- `parcel-state.example.json` — parcel-state snapshot after inference.
+- `parcel-context.example.json` — parcel installation context and priors for inference.
+- `public-context.example.json` — optional public external context for inference.
+- `raw-public-weather.example.json` — source-shaped weather payload before adapter normalization.
+- `raw-public-smoke.example.json` — source-shaped smoke payload before adapter normalization.
+- `shared-neighborhood-signal.example.json` — delayed, thresholded neighborhood signal from opt-in shared contributions.

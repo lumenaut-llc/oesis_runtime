@@ -25,6 +25,8 @@ Implementation and acceptance tests target:
 - **One software path** — ingest → normalized observation, plus parcel and public context → inference → parcel view (and evidence summary on the offline path).
 - **One parcel view** — homeowner-facing status surface from the parcel platform formatter.
 
+Canonical write-ups in **oesis-program-specs**: `architecture/current/v0.1-runtime-modules.md` (package map) and `architecture/current/v0.1-acceptance-criteria.md` (CLI/HTTP acceptance).
+
 ## Quick commands
 
 | Target | What it does |

@@ -11,8 +11,8 @@ from oesis.common.repo_paths import EXAMPLES_DIR, INFERENCE_CONFIG_DIR
 
 CONFIG_DIR = INFERENCE_CONFIG_DIR
 PUBLIC_CONTEXT_POLICY_PATH = CONFIG_DIR / "public_context_policy.json"
-_hazard_thresholds()_PATH = CONFIG_DIR / "hazard_thresholds_v0.json"
-_trust_gates()_PATH = CONFIG_DIR / "trust_gates_v0.json"
+HAZARD_THRESHOLDS_PATH = CONFIG_DIR / "hazard_thresholds_v0.json"
+TRUST_GATES_PATH = CONFIG_DIR / "trust_gates_v0.json"
 
 
 class InferenceError(Exception):

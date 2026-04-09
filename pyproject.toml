@@ -9,6 +9,9 @@ description = "Reference runtime services for Open Environmental Sensing and Inf
 readme = "README.md"
 requires-python = ">=3.11"
 
+[project.optional-dependencies]
+serial-bridge = ["pyserial>=3.5"]
+
 [project.urls]
 Homepage = "https://github.com/lumenaut-llc/oesis-runtime"
 Repository = "https://github.com/lumenaut-llc/oesis-runtime"
@@ -18,4 +21,4 @@ Documentation = "https://github.com/lumenaut-llc/oesis-program-specs"
 include = ["oesis*"]
 
 [tool.setuptools.package-data]
-oesis = ["assets/examples/*.json", "assets/config/inference/*.json"]
+oesis = ["assets/examples/*.json", "assets/config/inference/*.json", "assets/v1.0/examples/*.json", "assets/v1.0/config/inference/*.json"]

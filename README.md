@@ -35,8 +35,61 @@ Implementation and acceptance tests target:
 | `make oesis-check` | Validate examples, run demo, verify output shape (CLI path). |
 | `make oesis-http-check` | Start local HTTP services and verify ingest → inference → parcel view. |
 
+These default commands remain pinned to the frozen `v0.1` slice.
+
+## Bench-air serial → ingest bridge
+
+With hardware emitting one `oesis.bench-air.v1` JSON line per interval (see **oesis-program-specs** `hardware/bench-air-node/operator-runbook.md`), you can forward packets to the local ingest API without copying files:
+
+```bash
+pip install -e ".[serial-bridge]"
+python3 -m oesis.ingest.serve_ingest_api --host 127.0.0.1 --port 8787   # separate terminal
+python3 -m oesis.ingest.serial_bridge --serial-port /dev/cu.usbmodem101 --parcel-id parcel_demo_001
+```
+
+Use `--dry-run` to confirm lines parse on the wire, or `--once` for a single post. Defaults match `make oesis-http-check` (`127.0.0.1:8787`, path `/v1/ingest/node-packets`).
+
+## Ingest live dashboard (operator)
+
+While `serve_ingest_api` is running, open **`http://<host>:<port>/v1/ingest/live`** in a browser to poll the **last accepted** normalized observation (in-memory only; process restart clears it). JSON for scripts: **`GET /v1/ingest/debug/last`**. For hardware on the LAN, bind ingest with **`--host 0.0.0.0`** and use your machine’s LAN IP in the URL.
+
+## Parallel v1.0 lane
+
+This repository also carries an explicit opt-in `v1.0` lane beside the frozen
+default:
+
+- `make oesis-v10-accept`
+- `make oesis-v10-check`
+- `make oesis-v10-http-check`
+
+Those commands materialize a merged future-lane asset set from:
+
+- root `oesis/assets/examples/` and `oesis/assets/config/inference/` as the
+  frozen `v0.1` baseline
+- additive overrides under `oesis/assets/v1.0/`
+
+This keeps `v0.1` stable by default while giving `v1.0` a real parallel home.
+If the `v1.0` lane does not yet override a file, the `v0.1` baseline remains
+the explicit fallback for that opt-in lane only.
+
+## Pre-1.0 lane policy
+
+The runtime is intentionally not modeling `v0.2`, `v0.3`, and later lanes yet.
+
+For now:
+
+- keep `v0.1` as the frozen default runtime slice
+- use milestones and implementation-status docs for smaller compatible growth
+- use the additive future lane as the staging area for the next broader slice
+- only generalize runtime lane tooling after a second accepted pre-`1.0` slice
+  is real enough to justify new asset overlays, commands, and acceptance paths
+
 ## Optional environment overrides
 
 - `OESIS_CONTRACTS_BUNDLE_DIR` — directory containing an `examples/` subtree to use instead of `oesis/assets/examples`.
 - `OESIS_INFERENCE_CONFIG_DIR` — directory with `public_context_policy.json`, `hazard_thresholds_v0.json`, `trust_gates_v0.json` instead of `oesis/assets/config/inference/`.
 - HTTP smoke (`make oesis-http-check`): `OESIS_HTTP_INGEST_PORT`, `OESIS_HTTP_INFERENCE_PORT`, `OESIS_HTTP_PARCEL_PORT` (defaults `8787`–`8789`); `OESIS_HTTP_HEALTH_RETRIES` (default `30`); `OESIS_HTTP_HEALTH_INTERVAL_S` (default `0.2`).
+
+The `v1.0` helper scripts use those same override hooks explicitly. They do not
+change the root defaults for `python3 -m oesis.checks`, `make oesis-accept`, or
+the root asset paths.

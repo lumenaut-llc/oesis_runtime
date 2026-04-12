@@ -34,7 +34,7 @@
           "smoke"
         ],
         "weight": 0.32,
-        "visibility": "homeowner_safe"
+        "visibility": "dwelling_safe"
       },
       {
         "contribution_id": "local_siting_limit",
@@ -48,7 +48,7 @@
           "flood"
         ],
         "weight": 0.72,
-        "visibility": "homeowner_safe"
+        "visibility": "dwelling_safe"
       },
       {
         "contribution_id": "missing_parcel_context",
@@ -62,7 +62,7 @@
           "flood"
         ],
         "weight": 0.64,
-        "visibility": "homeowner_safe"
+        "visibility": "dwelling_safe"
       },
       {
         "contribution_id": "missing_flood_evidence",
@@ -74,7 +74,7 @@
           "flood"
         ],
         "weight": 0.58,
-        "visibility": "homeowner_safe"
+        "visibility": "dwelling_safe"
       },
       {
         "contribution_id": "low_confidence_gate",
@@ -88,7 +88,7 @@
           "flood"
         ],
         "weight": 0.68,
-        "visibility": "homeowner_safe"
+        "visibility": "dwelling_safe"
       }
     ],
     "source_breakdown": {
@@ -118,7 +118,7 @@
   "provenance_summary": {
     "observation_count": 1,
     "source_modes": [
-      "homeowner_node"
+      "dwelling_node"
     ],
     "observation_refs": [
       "obs_example_0001"

@@ -2,6 +2,24 @@
 
 Standalone runtime for the Open Environmental Sensing and Inference System reference path: ingest, inference, parcel platform, and smoke fixtures. The program specifications and contracts live in the sibling repository `../oesis-program-specs` (or your checkout of that tree).
 
+## Program operating packet
+
+**`oesis-program-specs`** remains canonical for contracts, schemas, and formal architecture. This repository also holds a **runtime-adjacent operating brief** (framing, phasing, KPIs, risks):
+
+- **[`00-version-labels-and-lanes.md`](00-version-labels-and-lanes.md)** — read first: program phases vs runtime `v0.1` / optional `v1.0` lane vs public release language.
+- **[`01-core-thesis-and-framing.md`](01-core-thesis-and-framing.md)** — thesis and positioning; then **`02`**–**`11`** in order by number at repo root:
+  - [`02-problem-opportunity-and-market-gap.md`](02-problem-opportunity-and-market-gap.md)
+  - [`03-originality-and-positioning.md`](03-originality-and-positioning.md)
+  - [`04-architecture-review-keep-dangerous-change-now.md`](04-architecture-review-keep-dangerous-change-now.md)
+  - [`05-revised-architecture-blueprint.md`](05-revised-architecture-blueprint.md)
+  - [`06-network-of-networks-concepts.md`](06-network-of-networks-concepts.md)
+  - [`07-information-layer-and-functional-recovery.md`](07-information-layer-and-functional-recovery.md)
+  - [`08-kpi-framework.md`](08-kpi-framework.md)
+  - [`09-phasing-v0.1-v1.0-v1.5.md`](09-phasing-v0.1-v1.0-v1.5.md)
+  - [`10-outside-concepts-and-technology-pull-forward.md`](10-outside-concepts-and-technology-pull-forward.md)
+  - [`11-next-docs-to-write.md`](11-next-docs-to-write.md)
+- **[`functional-state-and-response-model.md`](functional-state-and-response-model.md)** — hazard vs functional vs response state and how they land by phase (with [`05`](05-revised-architecture-blueprint.md) and [`09`](09-phasing-v0.1-v1.0-v1.5.md)).
+
 ## Setup
 
 From this repository root (recommended: use a virtual environment):
@@ -23,7 +41,7 @@ Implementation and acceptance tests target:
 - **One parcel** — a single `parcel_id` and parcel-context fixture for demos and checks.
 - **One bench-air node** — `oesis.bench-air.v1` packets; default fixture uses `bench-air-01`.
 - **One software path** — ingest → normalized observation, plus parcel and public context → inference → parcel view (and evidence summary on the offline path).
-- **One parcel view** — homeowner-facing status surface from the parcel platform formatter.
+- **One parcel view** — dwelling-facing status surface from the parcel platform formatter.
 
 Canonical write-ups in **oesis-program-specs**: `architecture/current/v0.1-runtime-modules.md` (package map) and `architecture/current/v0.1-acceptance-criteria.md` (CLI/HTTP acceptance).
 

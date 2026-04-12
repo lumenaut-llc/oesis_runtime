@@ -171,7 +171,7 @@ def validate_parcel_state(payload):
             maximum=1,
         )
         require(
-            contribution["visibility"] in {"homeowner_safe", "internal_only"},
+            contribution["visibility"] in {"dwelling_safe", "internal_only"},
             f"explanation_payload.evidence_contributions[{i}].visibility invalid",
         )
         if "freshness_band" in contribution:
@@ -674,7 +674,7 @@ def validate_normalized_observation(payload):
 
     provenance = payload["provenance"]
     require_type(provenance, dict, "provenance")
-    require(provenance["source_kind"] == "homeowner_node", "provenance.source_kind invalid")
+    require(provenance["source_kind"] == "dwelling_node", "provenance.source_kind invalid")
     require(provenance["schema_version"] == "oesis.bench-air.v1", "provenance.schema_version invalid")
     require_type(provenance["firmware_version"], str, "provenance.firmware_version")
     require_type(provenance["raw_packet_ref"], str, "provenance.raw_packet_ref")

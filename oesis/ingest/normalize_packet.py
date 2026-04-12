@@ -84,7 +84,7 @@ def normalize_packet(payload: dict, *, parcel_id: str | None = None, ingested_at
             "read_failures_total": payload["health"]["read_failures_total"],
         },
         "provenance": {
-            "source_kind": "homeowner_node",
+            "source_kind": "dwelling_node",
             "schema_version": payload["schema_version"],
             "firmware_version": payload["firmware_version"],
             "raw_packet_ref": make_ref("rawpkt"),

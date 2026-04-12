@@ -487,7 +487,7 @@ def derive_reasons(
     if confidence >= 0.5 and public_context:
         reasons.append("Confidence improves because public context supports the local evidence, but parcel certainty is still limited.")
     elif confidence >= 0.5:
-        reasons.append("The current decision is based on a single homeowner-owned node without confirming public context.")
+        reasons.append("The current decision is based on a single dwelling-associated node without confirming public context.")
 
     deduped = []
     seen = set()
@@ -511,7 +511,7 @@ def make_evidence_contribution(
     summary: str,
     hazards: list[str],
     weight: float,
-    visibility: str = "homeowner_safe",
+    visibility: str = "dwelling_safe",
     freshness_band: str | None = None,
 ) -> dict:
     contribution = {

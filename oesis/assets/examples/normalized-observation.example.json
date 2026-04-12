@@ -18,7 +18,7 @@
     "read_failures_total": 0
   },
   "provenance": {
-    "source_kind": "homeowner_node",
+    "source_kind": "dwelling_node",
     "schema_version": "oesis.bench-air.v1",
     "firmware_version": "0.1.0",
     "raw_packet_ref": "rawpkt_example_0001"

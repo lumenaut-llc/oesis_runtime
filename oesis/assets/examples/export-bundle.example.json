@@ -65,7 +65,7 @@
     "provenance_summary": {
       "observation_count": 1,
       "source_modes": [
-        "homeowner_node"
+        "dwelling_node"
       ],
       "observation_refs": [
         "obs_example_0001"

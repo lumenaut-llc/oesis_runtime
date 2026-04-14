@@ -2,24 +2,6 @@
 
 Standalone runtime for the Open Environmental Sensing and Inference System reference path: ingest, inference, parcel platform, and smoke fixtures. The program specifications and contracts live in the sibling repository [`oesis-program-specs`](https://github.com/lumenaut-llc/oesis-program-specs).
 
-## Program operating packet
-
-[**`oesis-program-specs`**](https://github.com/lumenaut-llc/oesis-program-specs) remains canonical for contracts, schemas, and formal architecture. The **operating packet** (framing, phasing, KPIs, risks) lives under [`program/operating-packet/`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/README.md):
-
-- **[`00-version-labels-and-lanes.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/00-version-labels-and-lanes.md)** — read first: program phases vs runtime `v0.1` / optional `v1.0` lane vs public release language.
-- **[`01-core-thesis-and-framing.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/01-core-thesis-and-framing.md)** — thesis and positioning; then **`02`**–**`11`** in order in that folder:
-  - [`02-problem-opportunity-and-market-gap.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/02-problem-opportunity-and-market-gap.md)
-  - [`03-originality-and-positioning.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/03-originality-and-positioning.md)
-  - [`04-architecture-review-keep-dangerous-change-now.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/04-architecture-review-keep-dangerous-change-now.md)
-  - [`05-revised-architecture-blueprint.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/05-revised-architecture-blueprint.md)
-  - [`06-network-of-networks-concepts.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/06-network-of-networks-concepts.md)
-  - [`07-information-layer-and-functional-recovery.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/07-information-layer-and-functional-recovery.md)
-  - [`08-kpi-framework.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/08-kpi-framework.md)
-  - [`09-phasing-v0.1-v1.0-v1.5.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)
-  - [`10-outside-concepts-and-technology-pull-forward.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/10-outside-concepts-and-technology-pull-forward.md)
-  - [`11-next-docs-to-write.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/11-next-docs-to-write.md)
-- **[`functional-state-and-response-model.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/functional-state-and-response-model.md)** — hazard vs functional vs response state and how they land by phase (with [`05`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/05-revised-architecture-blueprint.md) and [`09`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)).
-
 ## Setup
 
 From this repository root (recommended: use a virtual environment):

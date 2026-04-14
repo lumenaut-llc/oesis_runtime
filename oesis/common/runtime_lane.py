@@ -1,8 +1,15 @@
 """Materialize explicit runtime asset lanes without mutating default paths.
 
-Supported lanes: `v0.1` (frozen default), `v0.2` (indoor + sheltered-outdoor),
-`v1.0` (additive future). New lanes are discovered automatically from asset
-directories matching `oesis/assets/vX.Y/`.
+Supported lanes:
+- ``v0.1`` — one parcel, one bench-air, one pipeline (frozen default)
+- ``v0.2`` — two-node kit (bench-air + mast-lite)
+- ``v0.3`` — flood-capable runtime (bench-air + mast-lite + flood-node)
+- ``v0.4`` — multi-node registry + evidence composition
+- ``v0.5`` — governance enforcement (consent, retention, export, revocation)
+- ``v1.0`` — full runtime (additive future)
+
+New lanes are discovered automatically from asset directories matching
+``oesis/assets/vX.Y/``.
 """
 
 from __future__ import annotations

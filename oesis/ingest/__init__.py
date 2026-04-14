@@ -10,6 +10,9 @@ from oesis.common.runtime_lane import resolve_runtime_lane
 _LANE_TO_PACKAGE = {
     "v0.1": "oesis.ingest.v0_1",
     "v0.2": "oesis.ingest.v0_2",
+    "v0.3": "oesis.ingest.v0_3",
+    "v0.4": "oesis.ingest.v0_4",
+    "v0.5": "oesis.ingest.v0_5",
     "v1.0": "oesis.ingest.v1_0",
 }
 

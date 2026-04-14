@@ -8,6 +8,9 @@ from types import ModuleType
 _LANE_TO_PACKAGE = {
     "v0.1": "oesis.common.v0_1",
     "v0.2": "oesis.common.v0_2",
+    "v0.3": "oesis.common.v0_3",
+    "v0.4": "oesis.common.v0_4",
+    "v0.5": "oesis.common.v0_5",
     "v1.0": "oesis.common.v1_0",
 }
 

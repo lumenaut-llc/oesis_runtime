@@ -172,6 +172,12 @@ def main() -> None:
         raise SystemExit("v0.2 acceptance requires mast-lite normalized observation")
     if "mast_lite_parcel_state" not in payload:
         raise SystemExit("v0.2 acceptance requires mast-lite parcel state")
+    evidence = payload["evidence_summary"]
+    if "node_source_mix" not in evidence:
+        raise SystemExit("v0.2 evidence summary must include node_source_mix")
+    source_mix = evidence["node_source_mix"]
+    if not source_mix.get("evidence_source_nodes"):
+        raise SystemExit("v0.2 evidence summary node_source_mix must list source nodes")
     print(f"PASS oesis.checks v0.2 offline (indoor + outdoor: {len(payload['parcel_context']['node_installations'])} nodes)")
 
 

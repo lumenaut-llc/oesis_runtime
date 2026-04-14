@@ -1,8 +1,8 @@
 """Materialize explicit runtime asset lanes without mutating default paths.
 
-The current runtime intentionally supports only a frozen default `v0.1` lane and
-one additive future lane. Generalize this only after a second accepted pre-1.0
-slice is real enough to justify more versioned runtime surfaces.
+Supported lanes: `v0.1` (frozen default), `v0.2` (indoor + sheltered-outdoor),
+`v1.0` (additive future). New lanes are discovered automatically from asset
+directories matching `oesis/assets/vX.Y/`.
 """
 
 from __future__ import annotations

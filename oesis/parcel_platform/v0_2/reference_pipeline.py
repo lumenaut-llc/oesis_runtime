@@ -4,19 +4,11 @@ import argparse
 import json
 import sys
 
-from oesis.common.runtime_lane import resolve_runtime_lane
-from oesis.checks.v0_1.acceptance import build_v01_runtime_flow
 from oesis.checks.v0_2.acceptance import build_v02_runtime_flow
-from oesis.checks.v1_0.acceptance import build_v10_runtime_flow
 
 
 def build_pipeline(*, computed_at: str | None) -> dict:
-    lane = resolve_runtime_lane()
-    if lane == "v1.0":
-        return build_v10_runtime_flow(computed_at=computed_at or "2026-03-30T19:46:00Z")
-    if lane == "v0.2":
-        return build_v02_runtime_flow(computed_at=computed_at or "2026-03-30T19:46:00Z")
-    return build_v01_runtime_flow(computed_at=computed_at or "2026-03-30T19:46:00Z")
+    return build_v02_runtime_flow(computed_at=computed_at or "2026-03-30T19:46:00Z")
 
 
 def parse_args() -> argparse.Namespace:

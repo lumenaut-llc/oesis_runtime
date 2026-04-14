@@ -34,9 +34,9 @@ After that, `python3 -m oesis...` and the `Makefile` targets work from any curre
 
 Keep packaged examples under `oesis/assets/v0.1/examples/` in sync with `contracts/examples/` in **oesis-program-specs** when you change contracts.
 
-## v0.1 product slice (frozen scope)
+## v0.1 product slice (frozen scope, evolving implementation)
 
-Implementation and acceptance tests target:
+The v0.1 scope is frozen — no new capabilities are added. The implementation and examples continue to evolve within that scope (bug fixes, multi-hazard generalization, clearer examples). Implementation and acceptance tests target:
 
 - **One parcel** — a single `parcel_id` and parcel-context fixture for demos and checks.
 - **One bench-air node** — `oesis.bench-air.v1` packets; default fixture uses `bench-air-01`.
@@ -55,7 +55,7 @@ Canonical write-ups in **oesis-program-specs**: `architecture/current/v0.1-runti
 | `make oesis-check` | Validate examples, run demo, verify output shape (CLI path). |
 | `make oesis-http-check` | Start local HTTP services and verify ingest → inference → parcel view. |
 
-These default commands remain pinned to the frozen `v0.1` slice.
+These default commands remain pinned to the `v0.1` scope.
 
 ## Bench-air serial → ingest bridge
 
@@ -73,37 +73,58 @@ Use `--dry-run` to confirm lines parse on the wire, or `--once` for a single pos
 
 While `serve_ingest_api` is running, open **`http://<host>:<port>/v1/ingest/live`** in a browser to poll the **last accepted** normalized observation (in-memory only; process restart clears it). JSON for scripts: **`GET /v1/ingest/debug/last`**. For hardware on the LAN, bind ingest with **`--host 0.0.0.0`** and use your machine’s LAN IP in the URL.
 
-## Parallel v1.0 lane
+## Parallel lanes
 
-This repository also carries an explicit opt-in `v1.0` lane beside the frozen
-default:
+This repository carries explicit opt-in lanes beside the frozen default:
+
+### v0.2 lane (indoor + sheltered-outdoor parcel kit)
+
+- `make oesis-v02-accept`
+- `make oesis-v02-check`
+- `make oesis-v02-http-check`
+
+v0.2 extends v0.1 with mast-lite (sheltered outdoor node) alongside bench-air
+(indoor), stronger node registry, and indoor vs outdoor evidence source mix.
+See `oesis-program-specs/architecture/current/pre-1.0-version-progression.md`.
+
+### v1.0 lane (future target)
 
 - `make oesis-v10-accept`
 - `make oesis-v10-check`
 - `make oesis-v10-http-check`
 
-Those commands materialize a merged future-lane asset set from:
+Both lane commands materialize a merged asset set from:
 
 - baseline `oesis/assets/v0.1/` (examples and inference config)
-- additive overrides under `oesis/assets/v1.0/`
+- additive overrides under `oesis/assets/<lane>/`
 
-This keeps `v0.1` stable by default while giving `v1.0` a real parallel home.
-If the `v1.0` lane does not yet override a file, the `v0.1` baseline remains
-the explicit fallback for that opt-in lane only.
+This keeps `v0.1` stable by default while giving each lane a real parallel home.
+If a lane does not yet override a file, the `v0.1` baseline remains the
+explicit fallback for that opt-in lane only.
 
 ## Pre-1.0 lane policy
 
-The runtime is intentionally not modeling separate asset overlays for `v0.2`, `v0.3`, and later slices yet.
+The runtime now models `v0.2` as a real lane alongside the frozen `v0.1` default and the `v1.0` future target. Further pre-1.0 slices (`v0.3`, etc.) follow the same pattern when promoted.
 
-**Program-specs** still defines those promotions formally (for example **`v0.2`** = accepted indoor + sheltered-outdoor kit with evidence) in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](../oesis-program-specs/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](../oesis-program-specs/architecture/system/version-and-promotion-matrix.md). Until this repo adds matching lanes, exercise widened behavior through milestones, optional `v1.0` overrides, and implementation-status tracking—not by inventing informal version names here.
+**Program-specs** defines promotions formally in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](../oesis-program-specs/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](../oesis-program-specs/architecture/system/version-and-promotion-matrix.md).
 
-For now:
+Current lanes:
 
-- keep `v0.1` as the frozen default runtime slice
-- use milestones and implementation-status docs for smaller compatible growth
-- use the additive future lane as the staging area for the next broader slice
-- only generalize runtime lane tooling after a second accepted pre-`1.0` slice
-  is real enough to justify new asset overlays, commands, and acceptance paths
+- **`v0.1`** — frozen default runtime slice (one parcel, one bench-air node)
+- **`v0.2`** — indoor + sheltered-outdoor parcel kit (bench-air + mast-lite, node registry)
+- **`v1.0`** — additive future lane staging area
+
+## Version axes
+
+Three version identifiers appear in this project. They track different concerns:
+
+| Identifier | Where | What it tracks |
+|------------|-------|----------------|
+| Package version (`0.1.0` in `pyproject.toml`) | Python packaging | Installable release of the runtime implementation. Increments on code changes. |
+| Runtime lane (`v0.1`, `v1.0`) | `OESIS_RUNTIME_LANE`, `X-OESIS-Lane` header | Which asset and behavior set is active. Lanes are defined in `oesis-program-specs`. |
+| API version (`v1`) | HTTP path prefix `/v1/...`, `versioning.api_version` in payloads | HTTP service contract. Tracks the wire protocol, not the program phase or lane. |
+
+These are independent. A package release `0.2.0` does not create a new lane; a new lane does not change the HTTP API version.
 
 ## Optional environment overrides
 

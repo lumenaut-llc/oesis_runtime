@@ -5,12 +5,16 @@ from __future__ import annotations
 from oesis.common.runtime_lane import resolve_runtime_lane
 
 from .v0_1.acceptance import build_v01_runtime_flow, verify_runtime_flow_artifacts
+from .v0_2.acceptance import build_v02_runtime_flow
 from .v1_0.acceptance import build_v10_runtime_flow
 
 
 def main() -> None:
-    if resolve_runtime_lane() == "v1.0":
+    lane = resolve_runtime_lane()
+    if lane == "v1.0":
         payload = build_v10_runtime_flow()
+    elif lane == "v0.2":
+        payload = build_v02_runtime_flow()
     else:
         payload = build_v01_runtime_flow()
     verify_runtime_flow_artifacts(payload)

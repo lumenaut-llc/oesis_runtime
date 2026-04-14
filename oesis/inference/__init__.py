@@ -9,6 +9,7 @@ from oesis.common.runtime_lane import resolve_runtime_lane
 
 _LANE_TO_PACKAGE = {
     "v0.1": "oesis.inference.v0_1",
+    "v0.2": "oesis.inference.v0_2",
     "v1.0": "oesis.inference.v1_0",
 }
 

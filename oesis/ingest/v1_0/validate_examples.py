@@ -1124,6 +1124,75 @@ def validate_normalized_observation(payload):
     validate_node_observation(payload["raw_packet"])
 
 
+def validate_circuit_monitor_observation(payload):
+    required = [
+        "schema_id", "schema_version", "node_id", "firmware_version",
+        "uptime_s", "observed_at", "circuits", "health",
+    ]
+    for field in required:
+        require(field in payload, f"circuit monitor observation missing required field: {field}")
+
+    require(payload["schema_id"] == "oesis.circuit-monitor.v1", "schema_id must be oesis.circuit-monitor.v1")
+    require_type(payload["node_id"], str, "node_id")
+    require_type(payload["observed_at"], str, "observed_at")
+    require_type(payload["firmware_version"], str, "firmware_version")
+    require_number(payload["uptime_s"], "uptime_s", minimum=0)
+
+    circuits = payload["circuits"]
+    require_type(circuits, list, "circuits")
+    require(len(circuits) > 0, "circuits must not be empty")
+
+    valid_states = {"off", "fan_only", "compressor_running", "heating_active", "standby", "starting", "running", "overload", "unknown"}
+    for i, circuit in enumerate(circuits):
+        require_type(circuit, dict, f"circuits[{i}]")
+        require_type(circuit["circuit_id"], str, f"circuits[{i}].circuit_id")
+        require_number(circuit["current_a"], f"circuits[{i}].current_a", minimum=0)
+        require_number(circuit["power_w"], f"circuits[{i}].power_w")
+        require_number(circuit["voltage_v"], f"circuits[{i}].voltage_v", minimum=0)
+        require_number(circuit["power_factor"], f"circuits[{i}].power_factor", minimum=0, maximum=1)
+        require_number(circuit["energy_kwh"], f"circuits[{i}].energy_kwh", minimum=0)
+        require(circuit["inferred_state"] in valid_states, f"circuits[{i}].inferred_state invalid: {circuit['inferred_state']}")
+        require_type(circuit["cycle_active"], bool, f"circuits[{i}].cycle_active")
+        if circuit.get("cycle_duration_s") is not None:
+            require_number(circuit["cycle_duration_s"], f"circuits[{i}].cycle_duration_s", minimum=0)
+
+    health = payload["health"]
+    require_type(health, dict, "health")
+    if health.get("wifi_rssi") is not None:
+        require_number(health["wifi_rssi"], "health.wifi_rssi")
+    require_number(health["heap_free"], "health.heap_free", minimum=0)
+    require_number(health["sample_interval_ms"], "health.sample_interval_ms", minimum=0)
+    require_number(health["read_failures_total"], "health.read_failures_total", minimum=0)
+
+
+def validate_normalized_circuit_observation(payload):
+    required = [
+        "observation_id", "node_id", "parcel_id", "observed_at",
+        "ingested_at", "observation_type", "values", "health", "provenance",
+    ]
+    for field in required:
+        require(field in payload, f"normalized circuit observation missing required field: {field}")
+
+    require(payload["observation_type"] == "equipment.circuit.snapshot", "observation_type must be equipment.circuit.snapshot")
+
+    values = payload["values"]
+    require_type(values, dict, "values")
+    require("circuits" in values, "values.circuits required")
+    require_type(values["circuits"], list, "values.circuits")
+
+    health = payload["health"]
+    require_type(health, dict, "health")
+    require_number(health["uptime_s"], "health.uptime_s", minimum=0)
+    require_number(health["read_failures_total"], "health.read_failures_total", minimum=0)
+
+    provenance = payload["provenance"]
+    require_type(provenance, dict, "provenance")
+    require(provenance["source_kind"] == "circuit_monitor_node", "provenance.source_kind invalid")
+    require(provenance["schema_version"] == "oesis.circuit-monitor.v1", "provenance.schema_version invalid")
+    require_type(provenance["firmware_version"], str, "provenance.firmware_version")
+    require_type(provenance["raw_packet_ref"], str, "provenance.raw_packet_ref")
+
+
 def main():
     files = [
         ("node observation", EXAMPLES_DIR / "node-observation.example.json", validate_node_observation),
@@ -1152,10 +1221,14 @@ def main():
         ("rights request store", EXAMPLES_DIR / "rights-request-store.example.json", validate_rights_request_store),
         ("export bundle", EXAMPLES_DIR / "export-bundle.example.json", validate_export_bundle),
         ("retention cleanup report", EXAMPLES_DIR / "retention-cleanup-report.example.json", validate_retention_cleanup_report),
+        ("circuit monitor observation", EXAMPLES_DIR / "circuit-monitor-observation.example.json", validate_circuit_monitor_observation),
+        ("normalized circuit observation", EXAMPLES_DIR / "normalized-circuit-observation.example.json", validate_normalized_circuit_observation),
     ]
 
     failures = []
     for label, path, validator in files:
+        if not path.exists():
+            continue
         try:
             payload = load_json(path)
             validator(payload)

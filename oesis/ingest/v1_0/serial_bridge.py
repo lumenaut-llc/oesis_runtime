@@ -12,6 +12,8 @@ from http import HTTPStatus
 from typing import Any
 
 BENCH_AIR_SCHEMA = "oesis.bench-air.v1"
+CIRCUIT_MONITOR_SCHEMA = "oesis.circuit-monitor.v1"
+ACCEPTED_SCHEMAS = {BENCH_AIR_SCHEMA, CIRCUIT_MONITOR_SCHEMA}
 DEFAULT_INGEST_PATH = "/v1/ingest/node-packets"
 
 
@@ -154,13 +156,19 @@ def main() -> int:
             packet = parse_packet_line(line)
             if packet is None:
                 continue
-            if strict_schema and packet.get("schema_version") != BENCH_AIR_SCHEMA:
-                if not args.quiet:
-                    print(
-                        f"SKIP: schema_version {packet.get('schema_version')!r} != {BENCH_AIR_SCHEMA!r}",
-                        file=sys.stderr,
-                    )
-                continue
+            if strict_schema:
+                schema_match = (
+                    packet.get("schema_version") in ACCEPTED_SCHEMAS
+                    or packet.get("schema_id") in ACCEPTED_SCHEMAS
+                )
+                if not schema_match:
+                    if not args.quiet:
+                        found = packet.get("schema_version") or packet.get("schema_id") or "?"
+                        print(
+                            f"SKIP: schema {found!r} not in {sorted(ACCEPTED_SCHEMAS)}",
+                            file=sys.stderr,
+                        )
+                    continue
 
             if args.dry_run:
                 if not args.quiet:

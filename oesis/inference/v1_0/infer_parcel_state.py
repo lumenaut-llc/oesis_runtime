@@ -73,8 +73,9 @@ def validate_normalized_observation(payload: dict):
         if field not in payload:
             raise InferenceError(f"normalized observation missing required field: {field}")
 
-    if payload["observation_type"] != "air.node.snapshot":
-        raise InferenceError("observation_type must be air.node.snapshot")
+    supported_types = {"air.node.snapshot", "equipment.circuit.snapshot"}
+    if payload["observation_type"] not in supported_types:
+        raise InferenceError(f"observation_type must be one of {sorted(supported_types)}")
 
 
 def validate_public_context(payload: dict):
@@ -1527,6 +1528,52 @@ def build_explanation_payload(
     }
 
 
+def circuit_observation_to_equipment_state(normalized_circuit: dict) -> dict:
+    """Convert a normalized circuit observation into an equipment_state_observation."""
+    circuits = normalized_circuit.get("values", {}).get("circuits", [])
+    signals: dict = {}
+    for circuit in circuits:
+        state = circuit.get("inferred_state", "unknown")
+        cid = circuit.get("circuit_id", "").lower()
+        if "hvac" in cid:
+            if state == "compressor_running":
+                signals["hvac_mode"] = "cool"
+                signals["fan_state"] = "on"
+                signals["equipment_running"] = True
+            elif state == "fan_only":
+                signals["hvac_mode"] = "fan"
+                signals["fan_state"] = "on"
+                signals["equipment_running"] = True
+            elif state == "heating_active":
+                signals["hvac_mode"] = "heat"
+                signals["fan_state"] = "on"
+                signals["equipment_running"] = True
+            elif state == "off":
+                signals["hvac_mode"] = "off"
+                signals["fan_state"] = "off"
+                signals["equipment_running"] = False
+        elif "sump" in cid:
+            if state in ("running", "starting"):
+                signals["sump_state"] = "running"
+            elif state == "standby":
+                signals["sump_state"] = "standby"
+            elif state == "overload":
+                signals["sump_state"] = "overload"
+    return {
+        "parcel_id": normalized_circuit.get("parcel_id"),
+        "captured_at": normalized_circuit.get("observed_at"),
+        "confidence_band": "high",
+        "source": {
+            "source_kind": "direct_measurement",
+            "source_name": "circuit_monitor_ct_clamp",
+            "method": "pzem_current_threshold",
+            "ttl_seconds": 30,
+            "raw_ref": normalized_circuit.get("observation_id"),
+        },
+        "signals": signals,
+    }
+
+
 def infer_parcel_state(
     payload: dict,
     *,
@@ -1550,6 +1597,9 @@ def infer_parcel_state(
         validate_house_state(house_state)
     if house_capability is not None:
         validate_house_capability(house_capability)
+    # Auto-derive equipment_state_observation from circuit-monitor observations
+    if equipment_state_observation is None and payload.get("observation_type") == "equipment.circuit.snapshot":
+        equipment_state_observation = circuit_observation_to_equipment_state(payload)
     if equipment_state_observation is not None:
         validate_equipment_state_observation(equipment_state_observation)
     if source_provenance_record is not None:

@@ -13,6 +13,7 @@ from pathlib import Path
 from oesis.common.repo_paths import EXAMPLES_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload
 
+from .normalize_circuit_packet import normalize_circuit_packet as _normalize_circuit
 from .validate_examples import ValidationError, load_json, validate_node_observation
 
 
@@ -76,6 +77,10 @@ def normalize_packet(
     ingested_at: str | None = None,
     runtime_lane: str | None = None,
 ) -> dict:
+    # Dispatch to circuit-monitor normalizer if schema_id matches
+    if payload.get("schema_id") == "oesis.circuit-monitor.v1":
+        return _normalize_circuit(payload, parcel_id=parcel_id, ingested_at=ingested_at, runtime_lane=runtime_lane)
+
     validate_node_observation(payload)
     ingested_at = ingested_at or now_iso()
     resolved_lane = resolve_runtime_lane(runtime_lane)

@@ -20,7 +20,7 @@ from .normalize_packet import normalize_packet
 from .validate_examples import ValidationError
 
 
-SUPPORTED_SCHEMAS = ["oesis.bench-air.v1"]
+SUPPORTED_SCHEMAS = ["oesis.bench-air.v1", "oesis.circuit-monitor.v1"]
 
 _last_lock = threading.Lock()
 _last_snapshot: dict | None = None
@@ -168,7 +168,11 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                         {
                             "schema_version": "oesis.bench-air.v1",
                             "status": "active",
-                        }
+                        },
+                        {
+                            "schema_version": "oesis.circuit-monitor.v1",
+                            "status": "active",
+                        },
                     ],
                     "versioning": versioning_payload(lane=runtime_lane),
                 },

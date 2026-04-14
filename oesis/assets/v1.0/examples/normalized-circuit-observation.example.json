@@ -1,0 +1,91 @@
+{
+  "observation_id": "obs_cm_demo_001",
+  "node_id": "circuit-monitor-01",
+  "parcel_id": "parcel_demo_001",
+  "observed_at": "2026-04-14T14:30:00Z",
+  "ingested_at": "2026-04-14T14:30:01Z",
+  "observation_type": "equipment.circuit.snapshot",
+  "values": {
+    "circuits": [
+      {
+        "circuit_id": "hvac_main",
+        "current_a": 9.42,
+        "power_w": 1084.0,
+        "voltage_v": 121.3,
+        "power_factor": 0.95,
+        "energy_kwh": 2.47,
+        "inferred_state": "compressor_running",
+        "cycle_active": true,
+        "cycle_duration_s": 482
+      },
+      {
+        "circuit_id": "sump_primary",
+        "current_a": 0.08,
+        "power_w": 1.2,
+        "voltage_v": 121.4,
+        "power_factor": 0.12,
+        "energy_kwh": 0.31,
+        "inferred_state": "standby",
+        "cycle_active": false,
+        "cycle_duration_s": null
+      }
+    ]
+  },
+  "health": {
+    "uptime_s": 3600,
+    "wifi_rssi": -62,
+    "heap_free": 198432,
+    "sample_interval_ms": 10000,
+    "read_failures_total": 0
+  },
+  "provenance": {
+    "source_kind": "circuit_monitor_node",
+    "schema_version": "oesis.circuit-monitor.v1",
+    "firmware_version": "0.1.0",
+    "raw_packet_ref": "rawpkt_cm_demo_001"
+  },
+  "versioning": {
+    "api_version": "v1",
+    "runtime_lane": "v1.0",
+    "supported_lanes": ["v0.1", "v0.2", "v0.3", "v0.4", "v0.5", "v1.0"]
+  },
+  "raw_packet": {
+    "schema_id": "oesis.circuit-monitor.v1",
+    "schema_version": "1.0.0",
+    "node_id": "circuit-monitor-01",
+    "firmware_version": "0.1.0",
+    "uptime_s": 3600,
+    "observed_at": "2026-04-14T14:30:00Z",
+    "circuits": [
+      {
+        "circuit_id": "hvac_main",
+        "current_a": 9.42,
+        "power_w": 1084.0,
+        "voltage_v": 121.3,
+        "power_factor": 0.95,
+        "energy_kwh": 2.47,
+        "inferred_state": "compressor_running",
+        "cycle_active": true,
+        "cycle_duration_s": 482
+      },
+      {
+        "circuit_id": "sump_primary",
+        "current_a": 0.08,
+        "power_w": 1.2,
+        "voltage_v": 121.4,
+        "power_factor": 0.12,
+        "energy_kwh": 0.31,
+        "inferred_state": "standby",
+        "cycle_active": false,
+        "cycle_duration_s": null
+      }
+    ],
+    "health": {
+      "wifi_rssi": -62,
+      "heap_free": 198432,
+      "sample_interval_ms": 10000,
+      "read_failures_total": 0,
+      "last_error": null
+    }
+  }
+}

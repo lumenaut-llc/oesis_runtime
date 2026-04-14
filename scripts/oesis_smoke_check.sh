@@ -15,7 +15,7 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-from oesis.checks.v01 import verify_runtime_flow_artifacts
+from oesis.checks.v0_1.acceptance import verify_runtime_flow_artifacts
 
 payload = json.loads(Path("/tmp/oesis-demo.out").read_text(encoding="utf-8"))
 verify_runtime_flow_artifacts(payload)

@@ -1,0 +1,10 @@
+{
+  "parcel_id": "parcel_123",
+  "updated_at": "2026-03-30T20:15:00Z",
+  "private_only": true,
+  "network_assist": false,
+  "neighborhood_aggregate": false,
+  "research_or_pilot": false,
+  "notice_version": "sharing-notice.v1",
+  "revocation_pending": false
+}

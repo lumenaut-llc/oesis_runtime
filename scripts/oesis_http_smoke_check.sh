@@ -69,10 +69,12 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-from oesis.context.loader import load_default_bundle
-from oesis.ingest.normalize_public_smoke_context import normalize_public_smoke_context
-from oesis.ingest.normalize_public_weather_context import normalize_public_weather_context
-from oesis.inference.infer_parcel_state import combine_public_contexts
+from oesis.context import load_default_bundle
+from oesis.ingest.v0_1.normalize_public_smoke_context import normalize_public_smoke_context
+from oesis.ingest.v0_1.normalize_public_weather_context import normalize_public_weather_context
+from oesis.inference import lane_module as inference_lane_module
+
+combine_public_contexts = inference_lane_module("infer_parcel_state", lane="v0.1").combine_public_contexts
 
 ingest = json.loads(Path("/tmp/oesis-ingest-response.json").read_text(encoding="utf-8"))
 parcel_id = "parcel_demo_http"
@@ -119,7 +121,7 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-from oesis.checks.v01 import verify_http_flow_artifacts
+from oesis.checks.v0_1.acceptance import verify_http_flow_artifacts
 
 
 def load(path: str):

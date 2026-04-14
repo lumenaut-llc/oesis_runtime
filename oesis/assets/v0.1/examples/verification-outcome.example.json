@@ -1,0 +1,16 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "verification_id": "verify_0001",
+  "verified_at": "2026-04-14T20:10:00Z",
+  "intervention_ref": "intv_0001",
+  "hazard_type": "smoke",
+  "response_window_minutes": 45,
+  "result_class": "improved",
+  "before": {
+    "indoor_pm25_ugm3": 38.0
+  },
+  "after": {
+    "indoor_pm25_ugm3": 12.0
+  },
+  "summary": "Indoor PM2.5 fell after recirculation and purifier use."
+}

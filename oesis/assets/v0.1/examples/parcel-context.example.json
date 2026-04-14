@@ -1,0 +1,74 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "site_profile": {
+    "structure_type": "single_family",
+    "parcel_area_m2": 740,
+    "climate_zone": "unknown",
+    "notes": null
+  },
+  "node_installations": [
+    {
+      "node_id": "bench-air-01",
+      "node_type": "bench_air_node",
+      "location_mode": "indoor",
+      "install_role": "reference_indoor",
+      "placement_notes": "office near hallway",
+      "height_m": 1.2,
+      "exposure_bias_flags": [
+        "hvac_possible"
+      ],
+      "installed_at": "2026-03-30T18:00:00Z"
+    }
+  ],
+  "parcel_priors": {
+    "heat_retention_class": "high",
+    "runoff_tendency_class": "low",
+    "smoke_exposure_class": "high",
+    "fema_zone": "AE",
+    "foundation_type": "basement",
+    "first_floor_elev_ft": 9.5,
+    "base_flood_elev_ft": 10.0,
+    "year_built": 1968,
+    "dist_to_water_ft": 420,
+    "zone_zero_clearance_class": "combustible",
+    "defensible_space_class": "partial",
+    "roof_class": "roof_class_a",
+    "exterior_class": "exterior_wood",
+    "vent_class": "vents_unscreened",
+    "window_class": "single_pane",
+    "dist_to_wildland_ft": 680
+  },
+  "structure_response_profile": {
+    "orientation_class": "southwest_exposed",
+    "hvac_type": "forced_air",
+    "filter_path_class": "1_inch_return",
+    "higher_merv_support": "unknown"
+  },
+  "site_dependency_profile": {
+    "drainage_path_notes": [
+      "driveway lip drains toward curb cut"
+    ],
+    "primary_route_posture": "limited_exits",
+    "backup_power_available": "yes"
+  },
+  "known_protective_capabilities": {
+    "recirculation_available": true,
+    "portable_purifier_present": true,
+    "motorized_shades_present": false,
+    "backup_power_present": true
+  },
+  "known_vulnerable_zones": [
+    "west upstairs bedroom",
+    "driveway low point"
+  ],
+  "divergence_tracking": {
+    "temperature_c": {
+      "persistence_minutes": 105,
+      "num_concordant_sensors": 2
+    },
+    "pm25": {
+      "persistence_minutes": 190,
+      "num_concordant_sensors": 2
+    }
+  }
+}

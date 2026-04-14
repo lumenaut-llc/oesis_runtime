@@ -1,0 +1,9 @@
+{
+  "ran_at": "2026-03-30T21:00:00Z",
+  "access_events_removed": 1,
+  "rights_requests_removed": 1,
+  "notes": [
+    "Completed export requests older than the retention window were removed.",
+    "Access events older than the retention window were removed."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:22:00Z",
+  "records": [
+    {
+      "signal_key": "air_source_mode",
+      "value_type": "string",
+      "string_value": "recirculate",
+      "confidence_band": "high",
+      "source_kind": "adapter_derived",
+      "source_name": "ecobee_adapter",
+      "method": "cloud_runtime_poll",
+      "observed_at": "2026-04-14T19:21:30Z",
+      "ttl_seconds": 300,
+      "stale": false,
+      "raw_ref": "ecobee_runtime_packet_7781"
+    },
+    {
+      "signal_key": "outdoor_air_intake",
+      "value_type": "boolean",
+      "boolean_value": false,
+      "confidence_band": "medium",
+      "source_kind": "adapter_derived",
+      "source_name": "ecobee_adapter",
+      "method": "equipment_status_parse",
+      "observed_at": "2026-04-14T19:21:30Z",
+      "ttl_seconds": 300,
+      "stale": false
+    }
+  ]
+}

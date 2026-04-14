@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-03-30T20:30:00Z",
+  "min_participants": 2,
+  "sharing_settings": [
+    {
+      "parcel_ref": "parcel_ref_parcel_001",
+      "neighborhood_aggregate": true,
+      "revocation_pending": false
+    },
+    {
+      "parcel_ref": "parcel_ref_parcel_002",
+      "neighborhood_aggregate": true,
+      "revocation_pending": false
+    },
+    {
+      "parcel_ref": "parcel_ref_parcel_003",
+      "neighborhood_aggregate": true,
+      "revocation_pending": true
+    }
+  ],
+  "contributions": [
+    {
+      "cell_id": "cell_demo_001",
+      "source_class": "shared_data",
+      "parcel_ref": "parcel_ref_parcel_001",
+      "delayed_minutes": 15,
+      "hazards": {
+        "smoke_probability": 0.62,
+        "flood_probability": 0.05,
+        "heat_probability": 0.21
+      }
+    },
+    {
+      "cell_id": "cell_demo_001",
+      "source_class": "shared_data",
+      "parcel_ref": "parcel_ref_parcel_002",
+      "delayed_minutes": 15,
+      "hazards": {
+        "smoke_probability": 0.54,
+        "flood_probability": 0.03,
+        "heat_probability": 0.28
+      }
+    },
+    {
+      "cell_id": "cell_demo_001",
+      "source_class": "public_context",
+      "delayed_minutes": 10,
+      "hazards": {
+        "smoke_probability": 0.45,
+        "flood_probability": 0.04,
+        "heat_probability": 0.31
+      }
+    },
+    {
+      "cell_id": "cell_demo_002",
+      "source_class": "shared_data",
+      "parcel_ref": "parcel_ref_parcel_003",
+      "delayed_minutes": 15,
+      "hazards": {
+        "smoke_probability": 0.80,
+        "flood_probability": 0.12,
+        "heat_probability": 0.18
+      }
+    }
+  ]
+}

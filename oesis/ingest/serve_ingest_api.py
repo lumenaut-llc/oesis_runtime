@@ -7,9 +7,13 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .normalize_packet import normalize_packet
-from .validate_examples import ValidationError
-
+from oesis.common.runtime_lane import (
+    SUPPORTED_LANES,
+    requested_lane_from_headers,
+    resolve_runtime_lane,
+    versioning_payload,
+)
+from oesis.ingest import lane_module as ingest_lane_module
 
 SUPPORTED_SCHEMAS = ["oesis.bench-air.v1"]
 
@@ -127,10 +131,15 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
         try:
             return json.loads(raw.decode("utf-8"))
         except json.JSONDecodeError as exc:
-            raise ValidationError(f"request body: invalid JSON: {exc}") from exc
+            raise ValueError(f"request body: invalid JSON: {exc}") from exc
 
     def do_GET(self):
         path = _request_path(self.path)
+        try:
+            runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
+        except SystemExit as exc:
+            self._send_json(HTTPStatus.BAD_REQUEST, {"ok": False, "error": "invalid_runtime_lane", "detail": str(exc)})
+            return
         if path == "/v1/ingest/health":
             self._send_json(
                 HTTPStatus.OK,
@@ -138,6 +147,10 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "service": "ingest-service",
                     "supported_schemas": SUPPORTED_SCHEMAS,
+                    "versioning": {
+                        **versioning_payload(lane=runtime_lane),
+                        "supported_lanes": sorted(SUPPORTED_LANES),
+                    },
                 },
             )
             return
@@ -151,7 +164,8 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                             "schema_version": "oesis.bench-air.v1",
                             "status": "active",
                         }
-                    ]
+                    ],
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -165,6 +179,7 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                         "ok": True,
                         "empty": True,
                         "message": "no packets ingested yet",
+                        "versioning": versioning_payload(lane=runtime_lane),
                     },
                 )
             else:
@@ -174,6 +189,7 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                         "ok": True,
                         "empty": False,
                         **snap,
+                        "versioning": versioning_payload(lane=runtime_lane),
                     },
                 )
             return
@@ -192,9 +208,24 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
 
         parcel_id = self.headers.get("X-OESIS-Parcel-Id", "parcel_demo_001")
         try:
+            runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
+        except SystemExit as exc:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {
+                    "ok": False,
+                    "error": "invalid_runtime_lane",
+                    "detail": str(exc),
+                },
+            )
+            return
+
+        normalize_packet = ingest_lane_module("normalize_packet", lane=runtime_lane).normalize_packet
+        lane_validation_error = ingest_lane_module("validate_examples", lane=runtime_lane).ValidationError
+        try:
             payload = self._read_json()
-            normalized = normalize_packet(payload, parcel_id=parcel_id)
-        except (ValidationError, KeyError) as exc:
+            normalized = normalize_packet(payload, parcel_id=parcel_id, runtime_lane=runtime_lane)
+        except (lane_validation_error, ValueError, KeyError) as exc:
             self._send_json(
                 HTTPStatus.BAD_REQUEST,
                 {
@@ -211,6 +242,7 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
             {
                 "ok": True,
                 "normalized_observation": normalized,
+                "versioning": versioning_payload(lane=runtime_lane),
             },
         )
 

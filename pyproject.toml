@@ -8,6 +8,8 @@ version = "0.1.0"
 description = "Reference runtime services for Open Environmental Sensing and Inference System."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
 
 [project.optional-dependencies]
 serial-bridge = ["pyserial>=3.5"]
@@ -21,4 +23,4 @@ Documentation = "https://github.com/lumenaut-llc/oesis-program-specs"
 include = ["oesis*"]
 
 [tool.setuptools.package-data]
-oesis = ["assets/examples/*.json", "assets/config/inference/*.json", "assets/v1.0/examples/*.json", "assets/v1.0/config/inference/*.json"]
+oesis = ["assets/v0.1/examples/*.json", "assets/v0.1/config/inference/*.json", "assets/v1.0/examples/*.json", "assets/v1.0/config/inference/*.json"]

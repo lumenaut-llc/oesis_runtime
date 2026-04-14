@@ -1,0 +1,17 @@
+{
+  "context_id": "pubctx_example_0001",
+  "source_kind": "public_context",
+  "source_name": "demo_regional_weather_air",
+  "observed_at": "2026-03-30T19:40:00Z",
+  "coverage_mode": "regional",
+  "parcel_id": "parcel_demo_001",
+  "hazards": {
+    "smoke_probability": 0.18,
+    "heat_probability": 0.36,
+    "flood_probability": 0.04
+  },
+  "summary": [
+    "Regional conditions suggest modest heat concern.",
+    "Regional smoke conditions are present but not severe."
+  ]
+}

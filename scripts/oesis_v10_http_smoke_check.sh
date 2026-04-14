@@ -12,6 +12,7 @@ python3 -m oesis.common.runtime_lane inference-config --lane v1.0 --destination 
 
 export OESIS_CONTRACTS_BUNDLE_DIR="$CONTRACTS_DIR"
 export OESIS_INFERENCE_CONFIG_DIR="$CONFIG_DIR"
+export OESIS_RUNTIME_LANE="v1.0"
 
 : "${OESIS_HTTP_INGEST_PORT:=8797}"
 : "${OESIS_HTTP_INFERENCE_PORT:=8798}"
@@ -81,10 +82,12 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-from oesis.context.loader import load_default_bundle
-from oesis.ingest.normalize_public_smoke_context import normalize_public_smoke_context
-from oesis.ingest.normalize_public_weather_context import normalize_public_weather_context
-from oesis.inference.infer_parcel_state import combine_public_contexts
+from oesis.context import load_default_bundle
+from oesis.ingest.v1_0.normalize_public_smoke_context import normalize_public_smoke_context
+from oesis.ingest.v1_0.normalize_public_weather_context import normalize_public_weather_context
+from oesis.inference import lane_module as inference_lane_module
+
+combine_public_contexts = inference_lane_module("infer_parcel_state", lane="v1.0").combine_public_contexts
 
 ingest = json.loads(Path("/tmp/oesis-v10-ingest-response.json").read_text(encoding="utf-8"))
 parcel_id = "parcel_demo_http_v10"
@@ -131,7 +134,7 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-from oesis.checks.v01 import verify_http_flow_artifacts
+from oesis.checks.v1_0.acceptance import verify_http_flow_artifacts
 
 
 def load(path: str):

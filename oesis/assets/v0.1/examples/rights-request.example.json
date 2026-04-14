@@ -1,0 +1,13 @@
+{
+  "request_id": "rights_01HT000001",
+  "parcel_id": "parcel_001",
+  "account_id": "acct_123",
+  "request_type": "export",
+  "status": "submitted",
+  "created_at": "2026-03-30T20:20:00Z",
+  "scope": [
+    "private_parcel_data",
+    "derived_parcel_state"
+  ],
+  "requested_from_surface": "parcel_settings_ui"
+}

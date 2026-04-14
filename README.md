@@ -4,21 +4,21 @@ Standalone runtime for the Open Environmental Sensing and Inference System refer
 
 ## Program operating packet
 
-**`oesis-program-specs`** remains canonical for contracts, schemas, and formal architecture. This repository also holds a **runtime-adjacent operating brief** (framing, phasing, KPIs, risks):
+**`oesis-program-specs`** remains canonical for contracts, schemas, and formal architecture. The **operating packet** (framing, phasing, KPIs, risks) lives under [`program/operating-packet/`](../oesis-program-specs/program/operating-packet/README.md) in the sibling checkout:
 
-- **[`00-version-labels-and-lanes.md`](00-version-labels-and-lanes.md)** — read first: program phases vs runtime `v0.1` / optional `v1.0` lane vs public release language.
-- **[`01-core-thesis-and-framing.md`](01-core-thesis-and-framing.md)** — thesis and positioning; then **`02`**–**`11`** in order by number at repo root:
-  - [`02-problem-opportunity-and-market-gap.md`](02-problem-opportunity-and-market-gap.md)
-  - [`03-originality-and-positioning.md`](03-originality-and-positioning.md)
-  - [`04-architecture-review-keep-dangerous-change-now.md`](04-architecture-review-keep-dangerous-change-now.md)
-  - [`05-revised-architecture-blueprint.md`](05-revised-architecture-blueprint.md)
-  - [`06-network-of-networks-concepts.md`](06-network-of-networks-concepts.md)
-  - [`07-information-layer-and-functional-recovery.md`](07-information-layer-and-functional-recovery.md)
-  - [`08-kpi-framework.md`](08-kpi-framework.md)
-  - [`09-phasing-v0.1-v1.0-v1.5.md`](09-phasing-v0.1-v1.0-v1.5.md)
-  - [`10-outside-concepts-and-technology-pull-forward.md`](10-outside-concepts-and-technology-pull-forward.md)
-  - [`11-next-docs-to-write.md`](11-next-docs-to-write.md)
-- **[`functional-state-and-response-model.md`](functional-state-and-response-model.md)** — hazard vs functional vs response state and how they land by phase (with [`05`](05-revised-architecture-blueprint.md) and [`09`](09-phasing-v0.1-v1.0-v1.5.md)).
+- **[`00-version-labels-and-lanes.md`](../oesis-program-specs/program/operating-packet/00-version-labels-and-lanes.md)** — read first: program phases vs runtime `v0.1` / optional `v1.0` lane vs public release language.
+- **[`01-core-thesis-and-framing.md`](../oesis-program-specs/program/operating-packet/01-core-thesis-and-framing.md)** — thesis and positioning; then **`02`**–**`11`** in order in that folder:
+  - [`02-problem-opportunity-and-market-gap.md`](../oesis-program-specs/program/operating-packet/02-problem-opportunity-and-market-gap.md)
+  - [`03-originality-and-positioning.md`](../oesis-program-specs/program/operating-packet/03-originality-and-positioning.md)
+  - [`04-architecture-review-keep-dangerous-change-now.md`](../oesis-program-specs/program/operating-packet/04-architecture-review-keep-dangerous-change-now.md)
+  - [`05-revised-architecture-blueprint.md`](../oesis-program-specs/program/operating-packet/05-revised-architecture-blueprint.md)
+  - [`06-network-of-networks-concepts.md`](../oesis-program-specs/program/operating-packet/06-network-of-networks-concepts.md)
+  - [`07-information-layer-and-functional-recovery.md`](../oesis-program-specs/program/operating-packet/07-information-layer-and-functional-recovery.md)
+  - [`08-kpi-framework.md`](../oesis-program-specs/program/operating-packet/08-kpi-framework.md)
+  - [`09-phasing-v0.1-v1.0-v1.5.md`](../oesis-program-specs/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)
+  - [`10-outside-concepts-and-technology-pull-forward.md`](../oesis-program-specs/program/operating-packet/10-outside-concepts-and-technology-pull-forward.md)
+  - [`11-next-docs-to-write.md`](../oesis-program-specs/program/operating-packet/11-next-docs-to-write.md)
+- **[`functional-state-and-response-model.md`](../oesis-program-specs/program/operating-packet/functional-state-and-response-model.md)** — hazard vs functional vs response state and how they land by phase (with [`05`](../oesis-program-specs/program/operating-packet/05-revised-architecture-blueprint.md) and [`09`](../oesis-program-specs/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)).
 
 ## Setup
 
@@ -32,7 +32,7 @@ pip install -e .
 
 After that, `python3 -m oesis...` and the `Makefile` targets work from any current working directory.
 
-Keep packaged examples under `oesis/assets/examples/` in sync with `contracts/examples/` in **oesis-program-specs** when you change contracts.
+Keep packaged examples under `oesis/assets/v0.1/examples/` in sync with `contracts/examples/` in **oesis-program-specs** when you change contracts.
 
 ## v0.1 product slice (frozen scope)
 
@@ -84,8 +84,7 @@ default:
 
 Those commands materialize a merged future-lane asset set from:
 
-- root `oesis/assets/examples/` and `oesis/assets/config/inference/` as the
-  frozen `v0.1` baseline
+- baseline `oesis/assets/v0.1/` (examples and inference config)
 - additive overrides under `oesis/assets/v1.0/`
 
 This keeps `v0.1` stable by default while giving `v1.0` a real parallel home.
@@ -94,7 +93,9 @@ the explicit fallback for that opt-in lane only.
 
 ## Pre-1.0 lane policy
 
-The runtime is intentionally not modeling `v0.2`, `v0.3`, and later lanes yet.
+The runtime is intentionally not modeling separate asset overlays for `v0.2`, `v0.3`, and later slices yet.
+
+**Program-specs** still defines those promotions formally (for example **`v0.2`** = accepted indoor + sheltered-outdoor kit with evidence) in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](../oesis-program-specs/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](../oesis-program-specs/architecture/system/version-and-promotion-matrix.md). Until this repo adds matching lanes, exercise widened behavior through milestones, optional `v1.0` overrides, and implementation-status tracking—not by inventing informal version names here.
 
 For now:
 
@@ -106,10 +107,17 @@ For now:
 
 ## Optional environment overrides
 
-- `OESIS_CONTRACTS_BUNDLE_DIR` — directory containing an `examples/` subtree to use instead of `oesis/assets/examples`.
-- `OESIS_INFERENCE_CONFIG_DIR` — directory with `public_context_policy.json`, `hazard_thresholds_v0.json`, `trust_gates_v0.json` instead of `oesis/assets/config/inference/`.
+- `OESIS_CONTRACTS_BUNDLE_DIR` — directory containing an `examples/` subtree to use instead of `oesis/assets/v0.1/examples`.
+- `OESIS_INFERENCE_CONFIG_DIR` — directory with `public_context_policy.json`, `hazard_thresholds_v0.json`, `trust_gates_v0.json` instead of `oesis/assets/v0.1/config/inference/`.
+- `OESIS_RUNTIME_LANE` — explicit runtime lane (for example `v0.1`, `v1.0`); defaults to `v0.1`.
 - HTTP smoke (`make oesis-http-check`): `OESIS_HTTP_INGEST_PORT`, `OESIS_HTTP_INFERENCE_PORT`, `OESIS_HTTP_PARCEL_PORT` (defaults `8787`–`8789`); `OESIS_HTTP_HEALTH_RETRIES` (default `30`); `OESIS_HTTP_HEALTH_INTERVAL_S` (default `0.2`).
 
 The `v1.0` helper scripts use those same override hooks explicitly. They do not
 change the root defaults for `python3 -m oesis.checks`, `make oesis-accept`, or
 the root asset paths.
+
+For per-request API override, services also accept `X-OESIS-Lane`.
+
+## License
+
+This reference runtime is licensed under the **GNU Affero General Public License v3.0 or later**. See [`LICENSE`](LICENSE). Contribution expectations: [`CONTRIBUTING.md`](CONTRIBUTING.md).

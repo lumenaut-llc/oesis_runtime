@@ -5,8 +5,13 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .infer_parcel_state import InferenceError, combine_public_contexts, infer_parcel_state
-
+from oesis.common.runtime_lane import (
+    SUPPORTED_LANES,
+    requested_lane_from_headers,
+    resolve_runtime_lane,
+    versioning_payload,
+)
+from oesis.inference import lane_module as inference_lane_module
 
 MODEL_INFO = {
     "model_id": "hazard-logic-v0",
@@ -32,9 +37,14 @@ class InferenceRequestHandler(BaseHTTPRequestHandler):
         try:
             return json.loads(raw.decode("utf-8"))
         except json.JSONDecodeError as exc:
-            raise InferenceError(f"request body: invalid JSON: {exc}") from exc
+            raise ValueError(f"request body: invalid JSON: {exc}") from exc
 
     def do_GET(self):
+        try:
+            runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
+        except SystemExit as exc:
+            self._send_json(HTTPStatus.BAD_REQUEST, {"ok": False, "error": "invalid_runtime_lane", "detail": str(exc)})
+            return
         if self.path == "/v1/inference/health":
             self._send_json(
                 HTTPStatus.OK,
@@ -42,12 +52,16 @@ class InferenceRequestHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "service": "inference-engine",
                     "model": MODEL_INFO,
+                    "versioning": {
+                        **versioning_payload(lane=runtime_lane),
+                        "supported_lanes": sorted(SUPPORTED_LANES),
+                    },
                 },
             )
             return
 
         if self.path == "/v1/inference/models":
-            self._send_json(HTTPStatus.OK, {"models": [MODEL_INFO]})
+            self._send_json(HTTPStatus.OK, {"models": [MODEL_INFO], "versioning": versioning_payload(lane=runtime_lane)})
             return
 
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
@@ -59,13 +73,37 @@ class InferenceRequestHandler(BaseHTTPRequestHandler):
 
         computed_at = self.headers.get("X-OESIS-Computed-At")
         try:
+            runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
+        except SystemExit as exc:
+            self._send_json(
+                HTTPStatus.BAD_REQUEST,
+                {
+                    "ok": False,
+                    "error": "invalid_runtime_lane",
+                    "detail": str(exc),
+                },
+            )
+            return
+
+        lane_infer = inference_lane_module("infer_parcel_state", lane=runtime_lane)
+        InferenceError = lane_infer.InferenceError
+        combine_public_contexts = lane_infer.combine_public_contexts
+        infer_parcel_state = lane_infer.infer_parcel_state
+        try:
             payload = self._read_json()
             normalized_observation = payload.get("normalized_observation", payload)
             parcel_context = payload.get("parcel_context")
+            house_state = payload.get("house_state")
+            house_capability = payload.get("house_capability")
+            equipment_state_observation = payload.get("equipment_state_observation")
+            source_provenance_record = payload.get("source_provenance_record")
+            intervention_event = payload.get("intervention_event")
+            verification_outcome = payload.get("verification_outcome")
+            shared_neighborhood_context = payload.get("shared_neighborhood_context")
             public_context_payload = payload.get("public_context")
             public_contexts = payload.get("public_contexts", [])
             if public_context_payload and public_contexts:
-                raise InferenceError("request body must provide either public_context or public_contexts, not both")
+                    raise InferenceError("request body must provide either public_context or public_contexts, not both")
             combined_public_context = None
             if public_contexts:
                 combined_public_context = combine_public_contexts(public_contexts)
@@ -74,10 +112,18 @@ class InferenceRequestHandler(BaseHTTPRequestHandler):
             parcel_state = infer_parcel_state(
                 normalized_observation,
                 computed_at=computed_at,
+                runtime_lane=runtime_lane,
                 parcel_context=parcel_context,
+                house_state=house_state,
+                house_capability=house_capability,
+                equipment_state_observation=equipment_state_observation,
+                source_provenance_record=source_provenance_record,
+                intervention_event=intervention_event,
+                verification_outcome=verification_outcome,
+                shared_neighborhood_context=shared_neighborhood_context,
                 public_context=combined_public_context,
             )
-        except (InferenceError, KeyError) as exc:
+        except (InferenceError, ValueError, KeyError) as exc:
             self._send_json(
                 HTTPStatus.BAD_REQUEST,
                 {
@@ -93,6 +139,7 @@ class InferenceRequestHandler(BaseHTTPRequestHandler):
             {
                 "ok": True,
                 "parcel_state": parcel_state,
+                "versioning": versioning_payload(lane=runtime_lane),
             },
         )
 

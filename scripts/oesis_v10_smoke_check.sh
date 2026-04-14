@@ -17,6 +17,7 @@ python3 -m oesis.common.runtime_lane inference-config --lane v1.0 --destination 
 
 export OESIS_CONTRACTS_BUNDLE_DIR="$CONTRACTS_DIR"
 export OESIS_INFERENCE_CONFIG_DIR="$CONFIG_DIR"
+export OESIS_RUNTIME_LANE="v1.0"
 
 echo "[oesis-v10-check] validating example payloads"
 python3 -m oesis.ingest.validate_examples >/tmp/oesis-v10-validate.out
@@ -29,7 +30,7 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-from oesis.checks.v01 import verify_runtime_flow_artifacts
+from oesis.checks.v1_0.acceptance import verify_runtime_flow_artifacts
 
 payload = json.loads(Path("/tmp/oesis-v10-demo.out").read_text(encoding="utf-8"))
 verify_runtime_flow_artifacts(payload)

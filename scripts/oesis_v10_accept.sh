@@ -17,6 +17,7 @@ python3 -m oesis.common.runtime_lane inference-config --lane v1.0 --destination 
 
 export OESIS_CONTRACTS_BUNDLE_DIR="$CONTRACTS_DIR"
 export OESIS_INFERENCE_CONFIG_DIR="$CONFIG_DIR"
+export OESIS_RUNTIME_LANE="v1.0"
 
 echo "[oesis-v10-accept] offline acceptance using explicit v1.0 lane"
-python3 -m oesis.checks.v10
+python3 -m oesis.checks.v1_0.acceptance

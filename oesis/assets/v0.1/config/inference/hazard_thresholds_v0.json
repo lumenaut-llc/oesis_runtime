@@ -15,7 +15,29 @@
         "probability": 0.12
       }
     ],
-    "default_probability": 0.08
+    "default_probability": 0.08,
+    "indoor_pm25_bands": [
+      {
+        "gte": 55,
+        "probability": 0.78
+      },
+      {
+        "gte": 35,
+        "probability": 0.62
+      },
+      {
+        "gte": 20,
+        "probability": 0.42
+      },
+      {
+        "gte": 12,
+        "probability": 0.24
+      }
+    ],
+    "verification_window_min_minutes": 30,
+    "verification_window_max_minutes": 90,
+    "improvement_absolute_min_ugm3": 5.0,
+    "improvement_ratio_min": 0.2
   },
   "heat": {
     "base_probability": 0.08,

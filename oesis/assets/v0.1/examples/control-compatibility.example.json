@@ -1,0 +1,16 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "effective_at": "2026-04-14T19:30:00Z",
+  "endpoints": [
+    {
+      "label": "main_thermostat",
+      "endpoint_type": "thermostat",
+      "integration_class": "matter",
+      "local_control_available": true,
+      "advisory_only": false,
+      "soft_integration": true,
+      "harder_integration": false,
+      "override_required": false
+    }
+  ]
+}

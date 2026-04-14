@@ -1,0 +1,7 @@
+{
+  "source_name": "demo_regional_smoke_v1",
+  "observed_at": "2026-03-30T19:40:00Z",
+  "parcel_id": "parcel_demo_001",
+  "regional_pm25_ugm3": 38.0,
+  "smoke_advisory_level": "moderate"
+}

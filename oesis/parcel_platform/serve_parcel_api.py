@@ -10,8 +10,16 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from uuid import uuid4
 
 from oesis.common.repo_paths import EXAMPLES_DIR, REPO_ROOT
+from oesis.common.runtime_lane import (
+    SUPPORTED_LANES,
+    requested_lane_from_headers,
+    resolve_runtime_lane,
+    versioning_payload,
+)
+from oesis.parcel_platform import lane_module as parcel_lane_module
 
 from .format_evidence_summary import build_evidence_summary
 from .format_parcel_view import ParcelViewError, build_parcel_view, validate_sharing_settings
@@ -23,6 +31,38 @@ DEFAULT_RIGHTS_REQUEST = json.loads((EXAMPLES_DIR / "rights-request.example.json
 DEFAULT_SHARING_STORE = json.loads((EXAMPLES_DIR / "sharing-store.example.json").read_text(encoding="utf-8"))
 DEFAULT_RIGHTS_REQUEST_STORE = json.loads((EXAMPLES_DIR / "rights-request-store.example.json").read_text(encoding="utf-8"))
 DEFAULT_EXPORT_BUNDLE = json.loads((EXAMPLES_DIR / "export-bundle.example.json").read_text(encoding="utf-8"))
+DEFAULT_CONSENT_STORE = json.loads((EXAMPLES_DIR / "consent-store.example.json").read_text(encoding="utf-8"))
+
+DATA_CLASS_GOVERNANCE = {
+    "outdoor_pm25": {"shareable": True, "min_resolution": "hourly", "can_go_public": True},
+    "outdoor_temperature": {"shareable": True, "min_resolution": "hourly", "can_go_public": True},
+    "outdoor_humidity": {"shareable": True, "min_resolution": "hourly", "can_go_public": True},
+    "outdoor_pressure": {"shareable": True, "min_resolution": "hourly", "can_go_public": True},
+    "local_flood_stage": {"shareable": True, "min_resolution": "hourly", "can_go_public": True},
+    "parcel_state_label": {"shareable": True, "min_resolution": "hourly", "can_go_public": False},
+    "divergence_signal": {"shareable": True, "min_resolution": "daily", "can_go_public": True},
+    "indoor_pm25": {"shareable": False, "reason": "reveals indoor occupancy patterns"},
+    "indoor_temperature": {"shareable": False, "reason": "reveals occupancy and behavior"},
+    "hvac_mode": {"shareable": False, "reason": "reveals occupancy and equipment state"},
+    "sump_pump_state": {"shareable": False, "reason": "reveals infrastructure vulnerability"},
+    "power_state": {"shareable": False, "reason": "reveals when home is unprotected"},
+    "action_logs": {"shareable": False, "reason": "reveals response behavior and timing"},
+    "outcome_records": {"shareable": False, "reason": "reveals intervention effectiveness"},
+    "io_ratio_baseline": {"shareable": False, "reason": "reveals building envelope characteristics"},
+    "thermal_profile": {"shareable": False, "reason": "reveals building and occupancy patterns"},
+}
+
+PRIVATE_BY_DEFAULT_CLASSES = [
+    "indoor_pm25",
+    "indoor_temperature",
+    "hvac_mode",
+    "sump_pump_state",
+    "power_state",
+    "action_logs",
+    "outcome_records",
+    "io_ratio_baseline",
+    "thermal_profile",
+]
 
 _STORE_LOCKS: dict[Path, threading.RLock] = {}
 _STORE_LOCKS_GUARD = threading.Lock()
@@ -345,9 +385,175 @@ def update_sharing_store(path: Path, parcel_id: str, sharing: dict):
         _save_json_store_unlocked(resolved, store, touch_updated_at=True)
 
 
+def load_consent_store(path: Path) -> dict:
+    resolved = path.resolve()
+    with _store_lock(resolved):
+        return deepcopy(_load_json_store_unlocked(resolved, DEFAULT_CONSENT_STORE))
+
+
+def _validate_data_classes_for_sharing(data_classes: list[str], custody_tier: str):
+    if not isinstance(data_classes, list) or not data_classes:
+        raise ParcelViewError("data_classes must be a non-empty list")
+    for value in data_classes:
+        if not isinstance(value, str) or not value:
+            raise ParcelViewError("data_classes entries must be non-empty strings")
+        governance = DATA_CLASS_GOVERNANCE.get(value)
+        if governance is None:
+            raise ParcelViewError(f"data class is not registered in governance taxonomy: {value}")
+        if not governance.get("shareable", False):
+            reason = governance.get("reason", "not shareable")
+            raise ParcelViewError(f"data class is structurally private: {value} ({reason})")
+        if custody_tier == "public" and not governance.get("can_go_public", False):
+            raise ParcelViewError(f"data class cannot be shared at public custody tier: {value}")
+
+
+def grant_consent(path: Path, *, parcel_id: str, payload: dict) -> dict:
+    sharing_scope = payload.get("sharing_scope")
+    data_classes = payload.get("data_classes")
+    custody_tier = payload.get("custody_tier", "shared")
+    recipient_type = payload.get("recipient_type", "neighborhood_pool")
+    temporal_resolution = payload.get("temporal_resolution", "hourly")
+    spatial_precision = payload.get("spatial_precision", "parcel")
+    if not isinstance(sharing_scope, str) or not sharing_scope:
+        raise ParcelViewError("sharing_scope must be a non-empty string")
+    if custody_tier not in {"shared", "public"}:
+        raise ParcelViewError("custody_tier must be one of: shared, public")
+    if temporal_resolution not in {"raw", "5min", "hourly", "daily_summary"}:
+        raise ParcelViewError("temporal_resolution must be one of: raw, 5min, hourly, daily_summary")
+    if spatial_precision not in {"parcel", "block", "neighborhood"}:
+        raise ParcelViewError("spatial_precision must be one of: parcel, block, neighborhood")
+    _validate_data_classes_for_sharing(data_classes, custody_tier)
+
+    consent_record = {
+        "consent_id": f"consent_{uuid4().hex[:12]}",
+        "parcel_id": parcel_id,
+        "parcel_ref": payload.get("parcel_ref", parcel_ref_for_id(parcel_id)),
+        "granted_at": now_iso(),
+        "revoked_at": None,
+        "revocation_reason": None,
+        "sharing_scope": sharing_scope,
+        "data_classes": data_classes,
+        "custody_tier": custody_tier,
+        "recipient_type": recipient_type,
+        "recipient_id": payload.get("recipient_id"),
+        "temporal_resolution": temporal_resolution,
+        "spatial_precision": spatial_precision,
+        "consent_version": int(payload.get("consent_version", 1)),
+        "ui_surface": payload.get("ui_surface"),
+        "user_agent": payload.get("user_agent"),
+        "ip_hash": payload.get("ip_hash"),
+    }
+
+    resolved = path.resolve()
+    with _store_lock(resolved):
+        store = _load_json_store_unlocked(resolved, DEFAULT_CONSENT_STORE)
+        store.setdefault("consents", []).append(consent_record)
+        _save_json_store_unlocked(resolved, store, touch_updated_at=True)
+    return consent_record
+
+
+def revoke_consent(path: Path, *, parcel_id: str, consent_id: str, reason: str | None = None) -> dict:
+    resolved = path.resolve()
+    revoked_at = now_iso()
+    with _store_lock(resolved):
+        store = _load_json_store_unlocked(resolved, DEFAULT_CONSENT_STORE)
+        for record in store.setdefault("consents", []):
+            if record.get("consent_id") != consent_id:
+                continue
+            if record.get("parcel_id") != parcel_id:
+                raise ParcelViewError("consent does not belong to parcel")
+            if record.get("revoked_at") is not None:
+                raise ParcelViewError("consent already revoked")
+            record["revoked_at"] = revoked_at
+            record["revocation_reason"] = reason
+            _save_json_store_unlocked(resolved, store, touch_updated_at=True)
+            return deepcopy(record)
+    raise KeyError(f"active consent not found: {consent_id}")
+
+
+def _active_consents_for_parcel(store: dict, parcel_id: str) -> list[dict]:
+    active = []
+    for record in store.get("consents", []):
+        if record.get("parcel_id") != parcel_id:
+            continue
+        if record.get("revoked_at") is None:
+            active.append(record)
+    return active
+
+
+def _all_consents_for_parcel(store: dict, parcel_id: str) -> list[dict]:
+    records = [record for record in store.get("consents", []) if record.get("parcel_id") == parcel_id]
+    return sorted(records, key=lambda record: record.get("granted_at", ""), reverse=True)
+
+
+def governance_sharing_status(path: Path, parcel_id: str) -> dict:
+    store = load_consent_store(path)
+    active = _active_consents_for_parcel(store, parcel_id)
+    shared_classes = {item for record in active for item in record.get("data_classes", [])}
+    return {
+        "parcel_id": parcel_id,
+        "currently_sharing": [
+            {
+                "consent_id": record["consent_id"],
+                "what": record["data_classes"],
+                "with": record["recipient_type"],
+                "at_resolution": record["temporal_resolution"],
+                "since": record["granted_at"],
+                "revoke_url": f"/v1/parcels/{parcel_id}/consents/{record['consent_id']}/revoke",
+            }
+            for record in active
+        ],
+        "not_sharing": sorted(
+            data_class
+            for data_class, rules in DATA_CLASS_GOVERNANCE.items()
+            if rules.get("shareable") and data_class not in shared_classes
+        ),
+    }
+
+
+def governance_private_summary(path: Path, parcel_id: str) -> dict:
+    store = load_consent_store(path)
+    active = _active_consents_for_parcel(store, parcel_id)
+    opted_in_classes = {item for record in active for item in record.get("data_classes", [])}
+    private_by_choice = sorted(
+        data_class
+        for data_class, rules in DATA_CLASS_GOVERNANCE.items()
+        if rules.get("shareable") and data_class not in opted_in_classes
+    )
+    return {
+        "parcel_id": parcel_id,
+        "always_private": PRIVATE_BY_DEFAULT_CLASSES,
+        "private_by_choice": private_by_choice,
+        "statement": (
+            "House-state data (indoor sensors, HVAC mode, power status, action logs) "
+            "is always private and cannot be shared through consent settings."
+        ),
+    }
+
+
+def governance_consent_history(path: Path, parcel_id: str) -> list[dict]:
+    store = load_consent_store(path)
+    history = []
+    for record in _all_consents_for_parcel(store, parcel_id):
+        history.append(
+            {
+                "consent_id": record["consent_id"],
+                "sharing_scope": record["sharing_scope"],
+                "data_classes": record["data_classes"],
+                "custody_tier": record["custody_tier"],
+                "granted_at": record["granted_at"],
+                "revoked_at": record["revoked_at"],
+                "revocation_reason": record.get("revocation_reason"),
+                "status": "active" if record["revoked_at"] is None else "revoked",
+            }
+        )
+    return history
+
+
 class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
     server_version = "OESISParcelPlatform/0.1"
     sharing_store_path = None
+    consent_store_path = None
     rights_store_path = None
     access_log_path = None
     export_dir_path = None
@@ -376,12 +582,21 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
         return sharing_from_store(self.sharing_store_path, parcel_id)
 
     def do_GET(self):
+        try:
+            runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
+        except SystemExit as exc:
+            self._send_json(HTTPStatus.BAD_REQUEST, {"ok": False, "error": "invalid_runtime_lane", "detail": str(exc)})
+            return
         if self.path == "/v1/parcel-platform/health":
             self._send_json(
                 HTTPStatus.OK,
                 {
                     "ok": True,
                     "service": "parcel-platform",
+                    "versioning": {
+                        **versioning_payload(lane=runtime_lane),
+                        "supported_lanes": sorted(SUPPORTED_LANES),
+                    },
                 },
             )
             return
@@ -409,6 +624,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "summary": summary,
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -429,6 +645,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "sharing": self._sharing_for_parcel(parcel_id),
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -448,19 +665,94 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "rights_requests": list_rights_requests(self.rights_store_path, parcel_id),
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
 
+        if len(parts) == 5 and parts[:2] == ["v1", "parcels"] and parts[3] == "governance":
+            parcel_id = parts[2]
+            governance_surface = parts[4]
+            if governance_surface == "status":
+                status = governance_sharing_status(self.consent_store_path, parcel_id)
+                append_access_event(
+                    self.access_log_path,
+                    actor="parcel-platform-api",
+                    action="view_governance_status",
+                    parcel_id=parcel_id,
+                    data_classes=["administrative_record"],
+                    justification="governance_status_view",
+                )
+                self._send_json(
+                    HTTPStatus.OK,
+                    {
+                        "ok": True,
+                        "status": status,
+                        "versioning": versioning_payload(lane=runtime_lane),
+                    },
+                )
+                return
+            if governance_surface == "private-summary":
+                summary = governance_private_summary(self.consent_store_path, parcel_id)
+                append_access_event(
+                    self.access_log_path,
+                    actor="parcel-platform-api",
+                    action="view_governance_private_summary",
+                    parcel_id=parcel_id,
+                    data_classes=["administrative_record"],
+                    justification="governance_private_summary_view",
+                )
+                self._send_json(
+                    HTTPStatus.OK,
+                    {
+                        "ok": True,
+                        "private_summary": summary,
+                        "versioning": versioning_payload(lane=runtime_lane),
+                    },
+                )
+                return
+            if governance_surface == "history":
+                history = governance_consent_history(self.consent_store_path, parcel_id)
+                append_access_event(
+                    self.access_log_path,
+                    actor="parcel-platform-api",
+                    action="view_governance_consent_history",
+                    parcel_id=parcel_id,
+                    data_classes=["administrative_record"],
+                    justification="governance_history_view",
+                )
+                self._send_json(
+                    HTTPStatus.OK,
+                    {
+                        "ok": True,
+                        "consent_history": history,
+                        "versioning": versioning_payload(lane=runtime_lane),
+                    },
+                )
+                return
+
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def do_POST(self):
+        try:
+            runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
+        except SystemExit as exc:
+            self._send_json(HTTPStatus.BAD_REQUEST, {"ok": False, "error": "invalid_runtime_lane", "detail": str(exc)})
+            return
+        lane_format_mod = parcel_lane_module("format_parcel_view", lane=runtime_lane)
+        lane_evidence_mod = parcel_lane_module("format_evidence_summary", lane=runtime_lane)
+        lane_retention_mod = parcel_lane_module("run_retention_cleanup", lane=runtime_lane)
+        lane_parcel_error = lane_format_mod.ParcelViewError
+        lane_build_parcel_view = lane_format_mod.build_parcel_view
+        lane_validate_sharing_settings = lane_format_mod.validate_sharing_settings
+        lane_build_evidence_summary = lane_evidence_mod.build_evidence_summary
+        lane_run_cleanup = lane_retention_mod.run_cleanup
         if self.path == "/v1/parcels/state/view":
             try:
                 payload = self._read_json()
                 parcel_id = payload["parcel_id"]
                 sharing_settings = self._sharing_for_parcel(parcel_id)
-                parcel_view = build_parcel_view(payload, sharing_settings)
+                parcel_view = lane_build_parcel_view(payload, sharing_settings)
                 append_access_event(
                     self.access_log_path,
                     actor="parcel-platform-api",
@@ -469,7 +761,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                     data_classes=["private_parcel_data", "derived_parcel_state"],
                     justification="parcel_view_request",
                 )
-            except (ParcelViewError, KeyError) as exc:
+            except (lane_parcel_error, ParcelViewError, KeyError) as exc:
                 self._send_json(
                     HTTPStatus.BAD_REQUEST,
                     {
@@ -485,6 +777,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "parcel_view": parcel_view,
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -493,7 +786,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
             try:
                 payload = self._read_json()
                 parcel_id = payload["parcel_id"]
-                evidence_summary = build_evidence_summary(payload)
+                evidence_summary = lane_build_evidence_summary(payload)
                 append_access_event(
                     self.access_log_path,
                     actor="parcel-platform-api",
@@ -502,7 +795,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                     data_classes=["derived_parcel_state"],
                     justification="evidence_summary_request",
                 )
-            except (ParcelViewError, KeyError) as exc:
+            except (lane_parcel_error, ParcelViewError, KeyError) as exc:
                 self._send_json(
                     HTTPStatus.BAD_REQUEST,
                     {
@@ -518,6 +811,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "evidence_summary": evidence_summary,
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -529,7 +823,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 payload = self._read_json()
                 payload["parcel_id"] = parcel_id
                 payload["updated_at"] = now_iso()
-                validate_sharing_settings(payload)
+                lane_validate_sharing_settings(payload)
                 update_sharing_store(self.sharing_store_path, parcel_id, payload)
                 append_access_event(
                     self.access_log_path,
@@ -539,7 +833,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                     data_classes=["administrative_record"],
                     justification="sharing_settings_update",
                 )
-            except (ParcelViewError, KeyError) as exc:
+            except (lane_parcel_error, ParcelViewError, KeyError) as exc:
                 self._send_json(
                     HTTPStatus.BAD_REQUEST,
                     {
@@ -555,6 +849,82 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "sharing": self._sharing_for_parcel(parcel_id),
+                    "versioning": versioning_payload(lane=runtime_lane),
+                },
+            )
+            return
+
+        if len(parts) == 4 and parts[:2] == ["v1", "parcels"] and parts[3] == "consents":
+            parcel_id = parts[2]
+            try:
+                payload = self._read_json()
+                consent = grant_consent(self.consent_store_path, parcel_id=parcel_id, payload=payload)
+                append_access_event(
+                    self.access_log_path,
+                    actor="parcel-platform-api",
+                    action="grant_consent",
+                    parcel_id=parcel_id,
+                    data_classes=["administrative_record"],
+                    justification="consent_grant",
+                )
+            except (ParcelViewError, KeyError, ValueError) as exc:
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "ok": False,
+                        "error": "invalid_consent_grant",
+                        "detail": str(exc),
+                    },
+                )
+                return
+
+            self._send_json(
+                HTTPStatus.CREATED,
+                {
+                    "ok": True,
+                    "consent": consent,
+                    "versioning": versioning_payload(lane=runtime_lane),
+                },
+            )
+            return
+
+        if len(parts) == 6 and parts[:2] == ["v1", "parcels"] and parts[3] == "consents" and parts[5] == "revoke":
+            parcel_id = parts[2]
+            consent_id = parts[4]
+            try:
+                payload = self._read_json()
+                reason = payload.get("reason")
+                revoked = revoke_consent(self.consent_store_path, parcel_id=parcel_id, consent_id=consent_id, reason=reason)
+                append_access_event(
+                    self.access_log_path,
+                    actor="parcel-platform-api",
+                    action="revoke_consent",
+                    parcel_id=parcel_id,
+                    data_classes=["administrative_record"],
+                    justification="consent_revocation",
+                )
+            except (ParcelViewError, KeyError, ValueError) as exc:
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "ok": False,
+                        "error": "invalid_consent_revoke",
+                        "detail": str(exc),
+                    },
+                )
+                return
+
+            self._send_json(
+                HTTPStatus.OK,
+                {
+                    "ok": True,
+                    "revoked": True,
+                    "consent": revoked,
+                    "historical_data_behavior": (
+                        "Future shared contributions stop immediately. Previously aggregated "
+                        "public outputs may remain when they are no longer parcel-identifying."
+                    ),
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -577,6 +947,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "rights_request": rights_request,
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -614,6 +985,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "rights_request": result,
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -665,6 +1037,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                     "ok": True,
                     "rights_request": result,
                     "output_path": str(output_path),
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -673,7 +1046,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
             try:
                 payload = self._read_json()
                 retention_days = int(payload.get("retention_days", 30))
-                report = run_cleanup(
+                report = lane_run_cleanup(
                     rights_store_path=self.rights_store_path,
                     access_log_path=self.access_log_path,
                     retention_days=retention_days,
@@ -694,6 +1067,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "cleanup_report": report,
+                    "versioning": versioning_payload(lane=runtime_lane),
                 },
             )
             return
@@ -711,6 +1085,11 @@ def parse_args() -> argparse.Namespace:
         "--sharing-store",
         default="/tmp/oesis-sharing-store.json",
         help="Path to a JSON sharing store file used across reference services.",
+    )
+    parser.add_argument(
+        "--consent-store",
+        default="/tmp/oesis-consent-store.json",
+        help="Path to a JSON consent store file used for operational consent state.",
     )
     parser.add_argument(
         "--rights-store",
@@ -733,6 +1112,7 @@ def parse_args() -> argparse.Namespace:
 def main():
     args = parse_args()
     ParcelPlatformRequestHandler.sharing_store_path = Path(args.sharing_store).resolve()
+    ParcelPlatformRequestHandler.consent_store_path = Path(args.consent_store).resolve()
     ParcelPlatformRequestHandler.rights_store_path = Path(args.rights_store).resolve()
     ParcelPlatformRequestHandler.access_log_path = Path(args.access_log).resolve()
     ParcelPlatformRequestHandler.export_dir_path = Path(args.export_dir).resolve()

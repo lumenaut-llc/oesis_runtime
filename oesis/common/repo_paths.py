@@ -1,29 +1,24 @@
 import os
-from pathlib import Path
+from importlib import import_module
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-PACKAGE_ROOT = REPO_ROOT / "oesis"
-ASSETS_DIR = PACKAGE_ROOT / "assets"
-EXAMPLES_DIR = ASSETS_DIR / "examples"
-INFERENCE_CONFIG_ROOT = ASSETS_DIR / "config" / "inference"
+def _lane_module():
+    lane = os.environ.get("OESIS_RUNTIME_LANE", "v0.1")
+    module_name = "oesis.common.v1_0.repo_paths" if lane == "v1.0" else "oesis.common.v0_1.repo_paths"
+    return import_module(module_name)
 
-_contracts_bundle_dir = os.environ.get("OESIS_CONTRACTS_BUNDLE_DIR")
-if _contracts_bundle_dir:
-    bundle_examples_dir = Path(_contracts_bundle_dir).expanduser().resolve() / "examples"
-    EXAMPLES_DIR = bundle_examples_dir if bundle_examples_dir.is_dir() else EXAMPLES_DIR
 
-_inference_config_dir = os.environ.get("OESIS_INFERENCE_CONFIG_DIR")
-if _inference_config_dir:
-    INFERENCE_CONFIG_DIR = Path(_inference_config_dir).expanduser().resolve()
-else:
-    INFERENCE_CONFIG_DIR = INFERENCE_CONFIG_ROOT
+_lane = _lane_module()
 
-# Optional explicit names for tooling.
-RUNTIME_ROOT = PACKAGE_ROOT
-RUNTIME_ASSETS_DIR = ASSETS_DIR
-RUNTIME_EXAMPLES_DIR = EXAMPLES_DIR
-RUNTIME_INFERENCE_CONFIG_DIR = INFERENCE_CONFIG_ROOT
-
-# Deprecated: use EXAMPLES_DIR (removed after split from program-specs).
-DOCS_EXAMPLES_DIR = EXAMPLES_DIR
+REPO_ROOT = _lane.REPO_ROOT
+PACKAGE_ROOT = _lane.PACKAGE_ROOT
+ASSETS_DIR = _lane.ASSETS_DIR
+ASSETS_BASELINE_DIR = _lane.ASSETS_BASELINE_DIR
+EXAMPLES_DIR = _lane.EXAMPLES_DIR
+INFERENCE_CONFIG_ROOT = _lane.INFERENCE_CONFIG_ROOT
+INFERENCE_CONFIG_DIR = _lane.INFERENCE_CONFIG_DIR
+RUNTIME_ROOT = _lane.RUNTIME_ROOT
+RUNTIME_ASSETS_DIR = _lane.RUNTIME_ASSETS_DIR
+RUNTIME_EXAMPLES_DIR = _lane.RUNTIME_EXAMPLES_DIR
+RUNTIME_INFERENCE_CONFIG_DIR = _lane.RUNTIME_INFERENCE_CONFIG_DIR
+DOCS_EXAMPLES_DIR = _lane.DOCS_EXAMPLES_DIR

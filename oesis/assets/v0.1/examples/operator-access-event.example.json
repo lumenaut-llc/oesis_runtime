@@ -1,0 +1,12 @@
+{
+  "event_id": "access_01HT000001",
+  "occurred_at": "2026-03-30T20:40:00Z",
+  "actor": "parcel-platform-api",
+  "action": "view_parcel_state",
+  "parcel_id": "parcel_001",
+  "data_classes": [
+    "private_parcel_data",
+    "derived_parcel_state"
+  ],
+  "justification": "parcel_view_request"
+}

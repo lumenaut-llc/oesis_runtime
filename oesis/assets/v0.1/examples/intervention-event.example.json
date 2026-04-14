@@ -1,0 +1,11 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "event_id": "intv_0001",
+  "occurred_at": "2026-04-14T19:35:00Z",
+  "action_type": "hvac_recirculate_on",
+  "action_source": "operator_manual",
+  "details": {
+    "target_surface": "main_hvac",
+    "notes": "Recirculate enabled during smoke event."
+  }
+}

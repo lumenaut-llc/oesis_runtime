@@ -1,0 +1,18 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:20:00Z",
+  "indoor_response": {
+    "pm25_ugm3": 18.2,
+    "temperature_c": 27.1,
+    "relative_humidity_pct": 43.0
+  },
+  "power_state": {
+    "mains_state": "up",
+    "backup_power_present": true,
+    "backup_power_active": false
+  },
+  "source_summary": {
+    "node_ids": ["indoor-response-01"],
+    "source_kind": "private_support_object"
+  }
+}

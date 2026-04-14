@@ -1,0 +1,484 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "computed_at": "2026-03-30T19:46:00Z",
+  "shelter_status": "unknown",
+  "reentry_status": "unknown",
+  "egress_status": "unknown",
+  "asset_risk_status": "unknown",
+  "confidence": 0.69,
+  "evidence_mode": "local_plus_public",
+  "inference_basis": "local_plus_public",
+  "explanation_payload": {
+    "headline": "Estimate uses local plus public evidence with medium confidence.",
+    "basis": {
+      "evidence_mode": "local_plus_public",
+      "inference_basis": "local_plus_public",
+      "confidence_band": "medium"
+    },
+    "drivers": [
+      "Local temperature_c diverged from demo_regional_weather_v1 by 7.6 (local_depressed, sustained).",
+      "Regional conditions suggest modest heat concern.",
+      "Regional smoke context suggests modest smoke concern."
+    ],
+    "limitations": [
+      "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+      "Regional or neighborhood heat context is stronger than the local node reading, so parcel heat interpretation remains cautious.",
+      "Install role reference_indoor constrains how strongly this node represents wider parcel conditions."
+    ],
+    "evidence_contributions": [
+      {
+        "contribution_id": "local_gas_trend",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "driver",
+        "summary": "Local gas-resistance trend shows a moderate change, but it is not a direct smoke concentration measurement.",
+        "hazards": [
+          "smoke"
+        ],
+        "weight": 0.32,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "local_siting_limit",
+        "source_class": "local",
+        "source_name": "bench-air-01",
+        "role": "limitation",
+        "summary": "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+        "hazards": [
+          "smoke",
+          "heat",
+          "flood"
+        ],
+        "weight": 0.72,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "parcel_heat_prior",
+        "source_class": "parcel_context",
+        "source_name": "parcel_demo_001",
+        "role": "driver",
+        "summary": "Parcel metadata applies a +0.04 heat prior from retention class 'high'.",
+        "hazards": [
+          "heat"
+        ],
+        "weight": 0.12,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "parcel_smoke_prior",
+        "source_class": "parcel_context",
+        "source_name": "parcel_demo_001",
+        "role": "driver",
+        "summary": "Parcel metadata sets a smoke prior at 0.30 from exposure class 'high'.",
+        "hazards": [
+          "smoke"
+        ],
+        "weight": 0.24,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "parcel_flood_prior",
+        "source_class": "parcel_context",
+        "source_name": "parcel_demo_001",
+        "role": "driver",
+        "summary": "Parcel flood prior resolves to 0.026 from FEMA zone 'AE' and parcel modifiers.",
+        "hazards": [
+          "flood"
+        ],
+        "weight": 0.29,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "divergence_temperature_c",
+        "source_class": "system",
+        "source_name": "demo_regional_weather_v1",
+        "role": "driver",
+        "summary": "Local temperature_c diverged from demo_regional_weather_v1 by 7.6 (local_depressed, sustained).",
+        "hazards": [
+          "heat"
+        ],
+        "weight": 0.53,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "divergence_pm25",
+        "source_class": "system",
+        "source_name": "demo_regional_smoke_v1",
+        "role": "driver",
+        "summary": "Local pm25 diverged from demo_regional_smoke_v1 by 19.8 (local_depressed, persistent).",
+        "hazards": [
+          "smoke"
+        ],
+        "weight": 0.42,
+        "visibility": "dwelling_safe"
+      },
+      {
+        "contribution_id": "public_demo_regional_weather_v1",
+        "source_class": "public",
+        "source_name": "demo_regional_weather_v1",
+        "role": "driver",
+        "summary": "Regional conditions suggest modest heat concern.",
+        "hazards": [
+          "heat",
+          "flood"
+        ],
+        "weight": 0.48,
+        "visibility": "dwelling_safe",
+        "freshness_band": "fresh"
+      },
+      {
+        "contribution_id": "public_demo_regional_smoke_v1",
+        "source_class": "public",
+        "source_name": "demo_regional_smoke_v1",
+        "role": "driver",
+        "summary": "Regional smoke context suggests modest smoke concern.",
+        "hazards": [
+          "smoke",
+          "flood"
+        ],
+        "weight": 0.48,
+        "visibility": "dwelling_safe",
+        "freshness_band": "fresh"
+      }
+    ],
+    "source_breakdown": {
+      "local": true,
+      "shared": false,
+      "public": true,
+      "parcel_context": true,
+      "system": true
+    },
+    "support_objects_present": [
+      "house_state",
+      "house_capability",
+      "intervention_event",
+      "verification_outcome"
+    ],
+    "divergence_summary": [
+      "Public data alone would have classified smoke as 'safe' (p=0.31), while fused parcel inference classified it as 'safe' (p=0.37). Local evidence diverged by 19.8 and was local_depressed relative to the regional baseline.",
+      "Public data alone would have classified heat as 'safe' (p=0.31), while fused parcel inference classified it as 'safe' (p=0.31). Local evidence diverged by 7.6 and was local_depressed relative to the regional baseline."
+    ],
+    "top_divergence_records": [
+      {
+        "timestamp": "2026-03-30T19:45:00Z",
+        "sensor_id": "bench-air-01",
+        "parameter": "temperature_c",
+        "local_value": 23.4,
+        "regional_value": 31.0,
+        "regional_source": "demo_regional_weather_v1",
+        "correction_applied": "none",
+        "abs_diff": 7.6,
+        "ratio": 0.75,
+        "z_score": 3.45,
+        "direction": "local_depressed",
+        "magnitude": "extreme",
+        "persistence_minutes": 105,
+        "persistence_class": "sustained",
+        "aqi_category_local": null,
+        "aqi_category_regional": null,
+        "aqi_category_diff": null,
+        "num_concordant_sensors": 2,
+        "confidence": "high"
+      },
+      {
+        "timestamp": "2026-03-30T19:45:00Z",
+        "sensor_id": "indoor-response-01",
+        "parameter": "pm25",
+        "local_value": 18.2,
+        "regional_value": 38.0,
+        "regional_source": "demo_regional_smoke_v1",
+        "correction_applied": "none",
+        "abs_diff": 19.8,
+        "ratio": 0.48,
+        "z_score": 2.48,
+        "direction": "local_depressed",
+        "magnitude": "moderate",
+        "persistence_minutes": 190,
+        "persistence_class": "persistent",
+        "aqi_category_local": "moderate",
+        "aqi_category_regional": "usg",
+        "aqi_category_diff": -1,
+        "num_concordant_sensors": 2,
+        "confidence": "medium"
+      }
+    ]
+  },
+  "reasons": [
+    "Local gas-resistance trend shows a moderate change, but it is not a direct smoke concentration measurement.",
+    "Current local evidence comes from an indoor node and does not directly represent parcel-wide outdoor conditions.",
+    "Parcel metadata applies a +0.04 heat prior from retention class 'high'.",
+    "Parcel metadata sets a smoke prior at 0.30 from exposure class 'high'.",
+    "Parcel flood prior resolves to 0.026 from FEMA zone 'AE' and parcel modifiers.",
+    "Confidence improves because public context supports the local evidence, but parcel certainty is still limited.",
+    "Public data alone would have classified smoke as 'safe' (p=0.31), while fused parcel inference classified it as 'safe' (p=0.37). Local evidence diverged by 19.8 and was local_depressed relative to the regional baseline."
+  ],
+  "hazards": {
+    "smoke_probability": 0.37,
+    "flood_probability": 0.03,
+    "heat_probability": 0.31
+  },
+  "hazard_statuses": {
+    "smoke": "safe",
+    "flood": "unknown",
+    "heat": "safe"
+  },
+  "parcel_priors_applied": {
+    "smoke": {
+      "probability": 0.3,
+      "adjustment": 0.12,
+      "summary": "Parcel metadata sets a smoke prior at 0.30 from exposure class 'high'.",
+      "factors": [
+        {
+          "factor": "smoke_exposure_class",
+          "value": "high",
+          "effect": "baseline_probability",
+          "applied_value": 0.12
+        },
+        {
+          "factor": "zone_zero_clearance_class",
+          "value": "combustible",
+          "effect": "multiplier",
+          "applied_value": 1.8
+        },
+        {
+          "factor": "roof_class",
+          "value": "roof_class_a",
+          "effect": "multiplier",
+          "applied_value": 0.7
+        }
+      ]
+    },
+    "heat": {
+      "probability": null,
+      "adjustment": 0.04,
+      "summary": "Parcel metadata applies a +0.04 heat prior from retention class 'high'.",
+      "factors": [
+        {
+          "factor": "heat_retention_class",
+          "value": "high",
+          "effect": "adjustment",
+          "applied_value": 0.04
+        }
+      ]
+    },
+    "flood": {
+      "probability": 0.0263,
+      "adjustment": null,
+      "summary": "Parcel flood prior resolves to 0.026 from FEMA zone 'AE' and parcel modifiers.",
+      "factors": [
+        {
+          "factor": "fema_zone",
+          "value": "AE",
+          "effect": "baseline_probability",
+          "applied_value": 0.01
+        },
+        {
+          "factor": "foundation_type",
+          "value": "basement",
+          "effect": "multiplier",
+          "applied_value": 1.3
+        },
+        {
+          "factor": "dist_to_water_ft",
+          "value": 420,
+          "effect": "multiplier",
+          "applied_value": 1.5
+        }
+      ]
+    }
+  },
+  "divergence_records": [
+    {
+      "timestamp": "2026-03-30T19:45:00Z",
+      "sensor_id": "bench-air-01",
+      "parameter": "temperature_c",
+      "local_value": 23.4,
+      "regional_value": 31.0,
+      "regional_source": "demo_regional_weather_v1",
+      "correction_applied": "none",
+      "abs_diff": 7.6,
+      "ratio": 0.75,
+      "z_score": 3.45,
+      "direction": "local_depressed",
+      "magnitude": "extreme",
+      "persistence_minutes": 105,
+      "persistence_class": "sustained",
+      "aqi_category_local": null,
+      "aqi_category_regional": null,
+      "aqi_category_diff": null,
+      "num_concordant_sensors": 2,
+      "confidence": "high"
+    },
+    {
+      "timestamp": "2026-03-30T19:45:00Z",
+      "sensor_id": "indoor-response-01",
+      "parameter": "pm25",
+      "local_value": 18.2,
+      "regional_value": 38.0,
+      "regional_source": "demo_regional_smoke_v1",
+      "correction_applied": "none",
+      "abs_diff": 19.8,
+      "ratio": 0.48,
+      "z_score": 2.48,
+      "direction": "local_depressed",
+      "magnitude": "moderate",
+      "persistence_minutes": 190,
+      "persistence_class": "persistent",
+      "aqi_category_local": "moderate",
+      "aqi_category_regional": "usg",
+      "aqi_category_diff": -1,
+      "num_concordant_sensors": 2,
+      "confidence": "medium"
+    }
+  ],
+  "public_only_counterfactual": {
+    "hazards": {
+      "smoke_probability": 0.31,
+      "flood_probability": 0.03,
+      "heat_probability": 0.31
+    },
+    "hazard_statuses": {
+      "smoke": "safe",
+      "flood": "unknown",
+      "heat": "safe"
+    },
+    "confidence": 0.66
+  },
+  "closed_loop_summary": {
+    "hazard_type": "smoke",
+    "status": "not_attempted",
+    "summary": "No smoke-response loop has been attempted yet."
+  },
+  "contrastive_explanations": [
+    {
+      "explanation_id": "obs_example_0001:smoke:contrast",
+      "timestamp": "2026-03-30T19:46:00Z",
+      "hazard_type": "smoke",
+      "fact": {
+        "conclusion": "safe",
+        "hazard_level": "safe",
+        "probability": 0.37,
+        "confidence": 0.69,
+        "data_sources": [
+          "local:bench-air-01",
+          "local:house_state",
+          "parcel_context",
+          "parcel_capability",
+          "public:demo_regional_weather_v1",
+          "public:demo_regional_smoke_v1"
+        ]
+      },
+      "foil": {
+        "conclusion": "safe",
+        "hazard_level": "safe",
+        "probability": 0.31,
+        "confidence": 0.66,
+        "data_sources": [
+          "parcel_context",
+          "parcel_capability",
+          "public:demo_regional_weather_v1",
+          "public:demo_regional_smoke_v1"
+        ]
+      },
+      "contrast": {
+        "summary": "Public data alone would have classified smoke as 'safe' (p=0.31), while fused parcel inference classified it as 'safe' (p=0.37). Local evidence diverged by 19.8 and was local_depressed relative to the regional baseline.",
+        "delta_hazard_level": 0,
+        "delta_probability": 0.06,
+        "divergence_factors": [
+          {
+            "factor": "pm25",
+            "local_value": 18.2,
+            "public_value": 38.0,
+            "contribution_delta": 0.06,
+            "is_novel_signal": false
+          }
+        ]
+      },
+      "verification": {
+        "prediction_window_end": "2026-03-30T23:46:00Z",
+        "ground_truth_available": false,
+        "scores": {
+          "brier_score_fact": null,
+          "brier_score_foil": null,
+          "local_data_added_value": null
+        }
+      }
+    },
+    {
+      "explanation_id": "obs_example_0001:heat:contrast",
+      "timestamp": "2026-03-30T19:46:00Z",
+      "hazard_type": "heat",
+      "fact": {
+        "conclusion": "safe",
+        "hazard_level": "safe",
+        "probability": 0.31,
+        "confidence": 0.69,
+        "data_sources": [
+          "local:bench-air-01",
+          "local:house_state",
+          "parcel_context",
+          "parcel_capability",
+          "public:demo_regional_weather_v1",
+          "public:demo_regional_smoke_v1"
+        ]
+      },
+      "foil": {
+        "conclusion": "safe",
+        "hazard_level": "safe",
+        "probability": 0.31,
+        "confidence": 0.66,
+        "data_sources": [
+          "parcel_context",
+          "parcel_capability",
+          "public:demo_regional_weather_v1",
+          "public:demo_regional_smoke_v1"
+        ]
+      },
+      "contrast": {
+        "summary": "Public data alone would have classified heat as 'safe' (p=0.31), while fused parcel inference classified it as 'safe' (p=0.31). Local evidence diverged by 7.6 and was local_depressed relative to the regional baseline.",
+        "delta_hazard_level": 0,
+        "delta_probability": 0.0,
+        "divergence_factors": [
+          {
+            "factor": "temperature_c",
+            "local_value": 23.4,
+            "public_value": 31.0,
+            "contribution_delta": 0.0,
+            "is_novel_signal": true
+          }
+        ]
+      },
+      "verification": {
+        "prediction_window_end": "2026-03-31T01:46:00Z",
+        "ground_truth_available": false,
+        "scores": {
+          "brier_score_fact": null,
+          "brier_score_foil": null,
+          "local_data_added_value": null
+        }
+      }
+    }
+  ],
+  "freshness": {
+    "latest_observation_at": "2026-03-30T19:45:00Z",
+    "seconds_since_latest": 60,
+    "stale": false
+  },
+  "provenance_summary": {
+    "observation_count": 1,
+    "source_modes": [
+      "dwelling_node",
+      "public_context",
+      "private_support_object"
+    ],
+    "observation_refs": [
+      "obs_example_0001"
+    ],
+    "support_object_refs": [
+      "house_state",
+      "house_capability",
+      "intervention_event",
+      "verification_outcome"
+    ]
+  }
+}

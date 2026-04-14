@@ -1,0 +1,48 @@
+{
+  "updated_at": "2026-03-30T20:30:00Z",
+  "parcels": [
+    {
+      "parcel_id": "parcel_001",
+      "parcel_ref": "parcel_ref_parcel_001",
+      "sharing": {
+        "parcel_id": "parcel_001",
+        "updated_at": "2026-03-30T20:15:00Z",
+        "private_only": false,
+        "network_assist": false,
+        "neighborhood_aggregate": true,
+        "research_or_pilot": false,
+        "notice_version": "sharing-notice.v1",
+        "revocation_pending": false
+      }
+    },
+    {
+      "parcel_id": "parcel_002",
+      "parcel_ref": "parcel_ref_parcel_002",
+      "sharing": {
+        "parcel_id": "parcel_002",
+        "updated_at": "2026-03-30T20:15:00Z",
+        "private_only": true,
+        "network_assist": false,
+        "neighborhood_aggregate": false,
+        "research_or_pilot": false,
+        "notice_version": "sharing-notice.v1",
+        "revocation_pending": false
+      }
+    },
+    {
+      "parcel_id": "parcel_003",
+      "parcel_ref": "parcel_ref_parcel_003",
+      "sharing": {
+        "parcel_id": "parcel_003",
+        "updated_at": "2026-03-30T20:15:00Z",
+        "private_only": false,
+        "network_assist": false,
+        "neighborhood_aggregate": true,
+        "research_or_pilot": false,
+        "notice_version": "sharing-notice.v1",
+        "revocation_pending": true
+      }
+    }
+  ]
+}
+

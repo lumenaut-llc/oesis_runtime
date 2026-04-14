@@ -9,7 +9,7 @@ from pathlib import Path
 
 from oesis.common.repo_paths import EXAMPLES_DIR, INFERENCE_CONFIG_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload
-from oesis.inference.parcel_first_hazard import (
+from .parcel_first_hazard import (
     apply_public_and_shared_support,
     build_contrastive_explanations,
     build_divergence_records,

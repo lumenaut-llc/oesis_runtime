@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from oesis.common.runtime_lane import resolve_runtime_lane
 from oesis.context.v0_1.loader import load_default_bundle
 from oesis.ingest.v0_1.normalize_packet import normalize_packet
 from oesis.ingest.v0_1.normalize_public_smoke_context import normalize_public_smoke_context
@@ -62,6 +63,12 @@ def verify_runtime_flow_artifacts(payload: dict) -> None:
     if "versioning" not in normalized:
         raise SystemExit("normalized observation missing versioning")
 
+    expected_lane = resolve_runtime_lane()
+    for artifact_name, artifact in [("normalized_observation", normalized), ("parcel_state", parcel_state)]:
+        lane_in_artifact = artifact.get("versioning", {}).get("runtime_lane")
+        if lane_in_artifact != expected_lane:
+            raise SystemExit(f"{artifact_name} lane mismatch: expected {expected_lane}, got {lane_in_artifact}")
+
     for key in ("shelter_status", "reentry_status", "egress_status", "asset_risk_status", "confidence", "evidence_mode", "reasons", "freshness", "provenance_summary"):
         if key not in parcel_state:
             raise SystemExit(f"parcel_state missing {key}")
@@ -73,6 +80,9 @@ def verify_runtime_flow_artifacts(payload: dict) -> None:
             raise SystemExit(f"parcel_view missing {key}")
     if "versioning" not in parcel_view:
         raise SystemExit("parcel_view missing versioning")
+    parcel_view_lane = parcel_view.get("versioning", {}).get("runtime_lane")
+    if parcel_view_lane != expected_lane:
+        raise SystemExit(f"parcel_view lane mismatch: expected {expected_lane}, got {parcel_view_lane}")
 
 
 def verify_http_flow_artifacts(*, ingest_health: dict, inference_health: dict, parcel_health: dict, ingest_payload: dict, inference_payload: dict, parcel_payload: dict) -> None:

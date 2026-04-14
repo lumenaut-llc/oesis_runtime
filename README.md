@@ -1,24 +1,24 @@
 # OESIS Runtime
 
-Standalone runtime for the Open Environmental Sensing and Inference System reference path: ingest, inference, parcel platform, and smoke fixtures. The program specifications and contracts live in the sibling repository `../oesis-program-specs` (or your checkout of that tree).
+Standalone runtime for the Open Environmental Sensing and Inference System reference path: ingest, inference, parcel platform, and smoke fixtures. The program specifications and contracts live in the sibling repository [`oesis-program-specs`](https://github.com/lumenaut-llc/oesis-program-specs).
 
 ## Program operating packet
 
-**`oesis-program-specs`** remains canonical for contracts, schemas, and formal architecture. The **operating packet** (framing, phasing, KPIs, risks) lives under [`program/operating-packet/`](../oesis-program-specs/program/operating-packet/README.md) in the sibling checkout:
+[**`oesis-program-specs`**](https://github.com/lumenaut-llc/oesis-program-specs) remains canonical for contracts, schemas, and formal architecture. The **operating packet** (framing, phasing, KPIs, risks) lives under [`program/operating-packet/`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/README.md):
 
-- **[`00-version-labels-and-lanes.md`](../oesis-program-specs/program/operating-packet/00-version-labels-and-lanes.md)** — read first: program phases vs runtime `v0.1` / optional `v1.0` lane vs public release language.
-- **[`01-core-thesis-and-framing.md`](../oesis-program-specs/program/operating-packet/01-core-thesis-and-framing.md)** — thesis and positioning; then **`02`**–**`11`** in order in that folder:
-  - [`02-problem-opportunity-and-market-gap.md`](../oesis-program-specs/program/operating-packet/02-problem-opportunity-and-market-gap.md)
-  - [`03-originality-and-positioning.md`](../oesis-program-specs/program/operating-packet/03-originality-and-positioning.md)
-  - [`04-architecture-review-keep-dangerous-change-now.md`](../oesis-program-specs/program/operating-packet/04-architecture-review-keep-dangerous-change-now.md)
-  - [`05-revised-architecture-blueprint.md`](../oesis-program-specs/program/operating-packet/05-revised-architecture-blueprint.md)
-  - [`06-network-of-networks-concepts.md`](../oesis-program-specs/program/operating-packet/06-network-of-networks-concepts.md)
-  - [`07-information-layer-and-functional-recovery.md`](../oesis-program-specs/program/operating-packet/07-information-layer-and-functional-recovery.md)
-  - [`08-kpi-framework.md`](../oesis-program-specs/program/operating-packet/08-kpi-framework.md)
-  - [`09-phasing-v0.1-v1.0-v1.5.md`](../oesis-program-specs/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)
-  - [`10-outside-concepts-and-technology-pull-forward.md`](../oesis-program-specs/program/operating-packet/10-outside-concepts-and-technology-pull-forward.md)
-  - [`11-next-docs-to-write.md`](../oesis-program-specs/program/operating-packet/11-next-docs-to-write.md)
-- **[`functional-state-and-response-model.md`](../oesis-program-specs/program/operating-packet/functional-state-and-response-model.md)** — hazard vs functional vs response state and how they land by phase (with [`05`](../oesis-program-specs/program/operating-packet/05-revised-architecture-blueprint.md) and [`09`](../oesis-program-specs/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)).
+- **[`00-version-labels-and-lanes.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/00-version-labels-and-lanes.md)** — read first: program phases vs runtime `v0.1` / optional `v1.0` lane vs public release language.
+- **[`01-core-thesis-and-framing.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/01-core-thesis-and-framing.md)** — thesis and positioning; then **`02`**–**`11`** in order in that folder:
+  - [`02-problem-opportunity-and-market-gap.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/02-problem-opportunity-and-market-gap.md)
+  - [`03-originality-and-positioning.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/03-originality-and-positioning.md)
+  - [`04-architecture-review-keep-dangerous-change-now.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/04-architecture-review-keep-dangerous-change-now.md)
+  - [`05-revised-architecture-blueprint.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/05-revised-architecture-blueprint.md)
+  - [`06-network-of-networks-concepts.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/06-network-of-networks-concepts.md)
+  - [`07-information-layer-and-functional-recovery.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/07-information-layer-and-functional-recovery.md)
+  - [`08-kpi-framework.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/08-kpi-framework.md)
+  - [`09-phasing-v0.1-v1.0-v1.5.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)
+  - [`10-outside-concepts-and-technology-pull-forward.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/10-outside-concepts-and-technology-pull-forward.md)
+  - [`11-next-docs-to-write.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/11-next-docs-to-write.md)
+- **[`functional-state-and-response-model.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/functional-state-and-response-model.md)** — hazard vs functional vs response state and how they land by phase (with [`05`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/05-revised-architecture-blueprint.md) and [`09`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/operating-packet/09-phasing-v0.1-v1.0-v1.5.md)).
 
 ## Setup
 
@@ -43,7 +43,7 @@ The v0.1 scope is frozen — no new capabilities are added. The implementation a
 - **One software path** — ingest → normalized observation, plus parcel and public context → inference → parcel view (and evidence summary on the offline path).
 - **One parcel view** — dwelling-facing status surface from the parcel platform formatter.
 
-Canonical write-ups in **oesis-program-specs**: `architecture/current/v0.1-runtime-modules.md` (package map) and `architecture/current/v0.1-acceptance-criteria.md` (CLI/HTTP acceptance).
+Canonical write-ups in **oesis-program-specs**: [`v0.1-runtime-modules.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/v0.1-runtime-modules.md) (package map) and [`v0.1-acceptance-criteria.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/v0.1-acceptance-criteria.md) (CLI/HTTP acceptance).
 
 ## Quick commands
 
@@ -59,7 +59,7 @@ These default commands remain pinned to the `v0.1` scope.
 
 ## Bench-air serial → ingest bridge
 
-With hardware emitting one `oesis.bench-air.v1` JSON line per interval (see **oesis-program-specs** `hardware/bench-air-node/operator-runbook.md`), you can forward packets to the local ingest API without copying files:
+With hardware emitting one `oesis.bench-air.v1` JSON line per interval (see [`operator-runbook.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/hardware/bench-air-node/operator-runbook.md) in **oesis-program-specs**), you can forward packets to the local ingest API without copying files:
 
 ```bash
 pip install -e ".[serial-bridge]"
@@ -76,7 +76,7 @@ While `serve_ingest_api` is running, open **`http://<host>:<port>/v1/ingest/live
 ## Parallel lanes
 
 This repository carries explicit opt-in lanes beside the frozen default.
-See `oesis-program-specs/architecture/current/pre-1.0-version-progression.md` for the formal slice definitions.
+See [`pre-1.0-version-progression.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/pre-1.0-version-progression.md) in **oesis-program-specs** for the formal slice definitions.
 
 ### v0.2 lane (indoor + sheltered-outdoor parcel kit)
 
@@ -136,7 +136,7 @@ explicit fallback for that opt-in lane only.
 
 The runtime models all v0.x slices as real lanes alongside the frozen `v0.1` default and the `v1.0` future target. Each slice builds on the previous one.
 
-**Program-specs** defines promotions formally in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](../oesis-program-specs/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](../oesis-program-specs/architecture/system/version-and-promotion-matrix.md).
+**Program-specs** defines promotions formally in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/version-and-promotion-matrix.md).
 
 Current lanes:
 

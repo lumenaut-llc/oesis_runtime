@@ -27,7 +27,8 @@ def build_v02_runtime_flow(*, computed_at: str = "2026-03-30T19:46:00Z") -> dict
     )
     parcel_view = build_parcel_view(parcel_state)
     evidence_summary = build_evidence_summary(parcel_state)
-    return {
+
+    result = {
         "node_packet": bundle["node_packet"],
         "parcel_context": bundle["parcel_context"],
         "raw_public_weather": bundle["raw_public_weather"],
@@ -38,6 +39,23 @@ def build_v02_runtime_flow(*, computed_at: str = "2026-03-30T19:46:00Z") -> dict
         "parcel_view": parcel_view,
         "evidence_summary": evidence_summary,
     }
+
+    if "mast_lite_packet" in bundle:
+        mast_lite_normalized = normalize_packet(
+            bundle["mast_lite_packet"], parcel_id=bundle["parcel_id"], runtime_lane="v0.2"
+        )
+        mast_lite_parcel_state = infer_parcel_state(
+            mast_lite_normalized,
+            computed_at=computed_at,
+            runtime_lane="v0.2",
+            parcel_context=bundle["parcel_context"],
+            public_context=public_context,
+        )
+        result["mast_lite_packet"] = bundle["mast_lite_packet"]
+        result["mast_lite_normalized"] = mast_lite_normalized
+        result["mast_lite_parcel_state"] = mast_lite_parcel_state
+
+    return result
 
 
 def verify_runtime_flow_artifacts(payload: dict) -> None:
@@ -84,6 +102,30 @@ def verify_runtime_flow_artifacts(payload: dict) -> None:
     if parcel_view_lane != expected_lane:
         raise SystemExit(f"parcel_view lane mismatch: expected {expected_lane}, got {parcel_view_lane}")
 
+    if "mast_lite_normalized" in payload:
+        mast_lite = payload["mast_lite_normalized"]
+        if mast_lite["node_id"] != "mast-lite-01":
+            raise SystemExit(f"mast-lite normalized node_id mismatch: {mast_lite['node_id']}")
+        for key in ("node_id", "parcel_id", "values", "provenance"):
+            if key not in mast_lite:
+                raise SystemExit(f"mast-lite normalized observation missing {key}")
+        if "versioning" not in mast_lite:
+            raise SystemExit("mast-lite normalized observation missing versioning")
+        mast_lane = mast_lite.get("versioning", {}).get("runtime_lane")
+        if mast_lane != expected_lane:
+            raise SystemExit(f"mast-lite lane mismatch: expected {expected_lane}, got {mast_lane}")
+
+    if "mast_lite_parcel_state" in payload:
+        mast_state = payload["mast_lite_parcel_state"]
+        for key in ("shelter_status", "reentry_status", "egress_status", "asset_risk_status", "confidence"):
+            if key not in mast_state:
+                raise SystemExit(f"mast-lite parcel_state missing {key}")
+
+    parcel_context = payload["parcel_context"]
+    node_ids = [n["node_id"] for n in parcel_context.get("node_installations", [])]
+    if "mast-lite-01" not in node_ids:
+        raise SystemExit("v0.2 parcel_context must include mast-lite-01 in node_installations")
+
 
 def verify_http_flow_artifacts(*, ingest_health: dict, inference_health: dict, parcel_health: dict, ingest_payload: dict, inference_payload: dict, parcel_payload: dict) -> None:
     assert ingest_health["ok"] is True
@@ -126,7 +168,11 @@ def main() -> None:
         raise SystemExit("parcel_state lane mismatch")
     if payload["parcel_view"]["versioning"]["runtime_lane"] != expected_lane:
         raise SystemExit("parcel_view lane mismatch")
-    print("PASS oesis.checks v0.2 offline")
+    if "mast_lite_normalized" not in payload:
+        raise SystemExit("v0.2 acceptance requires mast-lite normalized observation")
+    if "mast_lite_parcel_state" not in payload:
+        raise SystemExit("v0.2 acceptance requires mast-lite parcel state")
+    print(f"PASS oesis.checks v0.2 offline (indoor + outdoor: {len(payload['parcel_context']['node_installations'])} nodes)")
 
 
 if __name__ == "__main__":

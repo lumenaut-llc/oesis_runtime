@@ -1,4 +1,4 @@
-"""Small context loader helpers for the narrow runtime path plus bridge support examples."""
+"""Context loader for v0.2: indoor + sheltered-outdoor parcel kit (bench-air + mast-lite)."""
 
 from __future__ import annotations
 
@@ -43,6 +43,13 @@ def load_support_objects() -> dict:
     }
 
 
+def _try_load_example(name: str) -> dict | None:
+    path = EXAMPLES_DIR / name
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return None
+
+
 def load_default_bundle(*, parcel_id: str = DEFAULT_PARCEL_ID, include_support_objects: bool = False) -> dict:
     packet = load_example_json("node-observation.example.json")
     packet["node_id"] = "bench-air-01"
@@ -55,6 +62,10 @@ def load_default_bundle(*, parcel_id: str = DEFAULT_PARCEL_ID, include_support_o
         "raw_public_weather": raw_public_weather,
         "raw_public_smoke": raw_public_smoke,
     }
+    mast_lite_packet = _try_load_example("node-observation-mast-lite.example.json")
+    if mast_lite_packet is not None:
+        mast_lite_packet["node_id"] = "mast-lite-01"
+        bundle["mast_lite_packet"] = mast_lite_packet
     if include_support_objects:
         support_objects = load_support_objects()
         support_objects["house_state"]["parcel_id"] = parcel_id

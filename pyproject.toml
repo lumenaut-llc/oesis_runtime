@@ -23,4 +23,11 @@ Documentation = "https://github.com/lumenaut-llc/oesis-program-specs"
 include = ["oesis*"]
 
 [tool.setuptools.package-data]
-oesis = ["assets/v0.1/examples/*.json", "assets/v0.1/config/inference/*.json", "assets/v1.0/examples/*.json", "assets/v1.0/config/inference/*.json"]
+oesis = [
+    "assets/v0.1/examples/*.json", "assets/v0.1/config/inference/*.json",
+    "assets/v0.2/examples/*.json", "assets/v0.2/config/inference/*.json",
+    "assets/v0.3/examples/*.json", "assets/v0.3/config/inference/*.json",
+    "assets/v0.4/examples/*.json", "assets/v0.4/config/inference/*.json",
+    "assets/v0.5/examples/*.json", "assets/v0.5/config/inference/*.json",
+    "assets/v1.0/examples/*.json", "assets/v1.0/config/inference/*.json",
+]

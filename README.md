@@ -75,7 +75,8 @@ While `serve_ingest_api` is running, open **`http://<host>:<port>/v1/ingest/live
 
 ## Parallel lanes
 
-This repository carries explicit opt-in lanes beside the frozen default:
+This repository carries explicit opt-in lanes beside the frozen default.
+See `oesis-program-specs/architecture/current/pre-1.0-version-progression.md` for the formal slice definitions.
 
 ### v0.2 lane (indoor + sheltered-outdoor parcel kit)
 
@@ -85,7 +86,36 @@ This repository carries explicit opt-in lanes beside the frozen default:
 
 v0.2 extends v0.1 with mast-lite (sheltered outdoor node) alongside bench-air
 (indoor), stronger node registry, and indoor vs outdoor evidence source mix.
-See `oesis-program-specs/architecture/current/pre-1.0-version-progression.md`.
+
+### v0.3 lane (flood-capable runtime)
+
+- `make oesis-v03-accept`
+- `make oesis-v03-check`
+- `make oesis-v03-http-check`
+
+v0.3 extends v0.2 with a flood-node (`oesis.flood-node.v1` schema,
+`flood.low_point.snapshot` observation type) giving a three-node parcel kit
+(bench-air + mast-lite + flood-node).
+
+### v0.4 lane (multi-node registry + evidence composition)
+
+- `make oesis-v04-accept`
+- `make oesis-v04-check`
+- `make oesis-v04-http-check`
+
+v0.4 extends v0.3 with node registry lifecycle (load, validate, filter active,
+bind to observations) and multi-node evidence composition with
+calibration-weighted contributions and source diversity tracking.
+
+### v0.5 lane (governance enforcement)
+
+- `make oesis-v05-accept`
+- `make oesis-v05-check`
+- `make oesis-v05-http-check`
+
+v0.5 extends v0.4 with real governance enforcement: consent lifecycle (grant,
+revoke, status, history), retention cleanup, export bundles, and revocation
+suppression in the shared map.
 
 ### v1.0 lane (future target)
 
@@ -93,7 +123,7 @@ See `oesis-program-specs/architecture/current/pre-1.0-version-progression.md`.
 - `make oesis-v10-check`
 - `make oesis-v10-http-check`
 
-Both lane commands materialize a merged asset set from:
+All lane commands materialize a merged asset set from:
 
 - baseline `oesis/assets/v0.1/` (examples and inference config)
 - additive overrides under `oesis/assets/<lane>/`
@@ -104,14 +134,17 @@ explicit fallback for that opt-in lane only.
 
 ## Pre-1.0 lane policy
 
-The runtime now models `v0.2` as a real lane alongside the frozen `v0.1` default and the `v1.0` future target. Further pre-1.0 slices (`v0.3`, etc.) follow the same pattern when promoted.
+The runtime models all v0.x slices as real lanes alongside the frozen `v0.1` default and the `v1.0` future target. Each slice builds on the previous one.
 
 **Program-specs** defines promotions formally in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](../oesis-program-specs/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](../oesis-program-specs/architecture/system/version-and-promotion-matrix.md).
 
 Current lanes:
 
 - **`v0.1`** — frozen default runtime slice (one parcel, one bench-air node)
-- **`v0.2`** — indoor + sheltered-outdoor parcel kit (bench-air + mast-lite, node registry)
+- **`v0.2`** — indoor + sheltered-outdoor parcel kit (bench-air + mast-lite)
+- **`v0.3`** — flood-capable runtime (bench-air + mast-lite + flood-node)
+- **`v0.4`** — multi-node registry lifecycle + evidence composition
+- **`v0.5`** — governance enforcement (consent, retention, export, revocation)
 - **`v1.0`** — additive future lane staging area
 
 ## Version axes
@@ -121,7 +154,7 @@ Three version identifiers appear in this project. They track different concerns:
 | Identifier | Where | What it tracks |
 |------------|-------|----------------|
 | Package version (`0.1.0` in `pyproject.toml`) | Python packaging | Installable release of the runtime implementation. Increments on code changes. |
-| Runtime lane (`v0.1`, `v1.0`) | `OESIS_RUNTIME_LANE`, `X-OESIS-Lane` header | Which asset and behavior set is active. Lanes are defined in `oesis-program-specs`. |
+| Runtime lane (`v0.1`–`v0.5`, `v1.0`) | `OESIS_RUNTIME_LANE`, `X-OESIS-Lane` header | Which asset and behavior set is active. Lanes are defined in `oesis-program-specs`. |
 | API version (`v1`) | HTTP path prefix `/v1/...`, `versioning.api_version` in payloads | HTTP service contract. Tracks the wire protocol, not the program phase or lane. |
 
 These are independent. A package release `0.2.0` does not create a new lane; a new lane does not change the HTTP API version.
@@ -130,12 +163,12 @@ These are independent. A package release `0.2.0` does not create a new lane; a n
 
 - `OESIS_CONTRACTS_BUNDLE_DIR` — directory containing an `examples/` subtree to use instead of `oesis/assets/v0.1/examples`.
 - `OESIS_INFERENCE_CONFIG_DIR` — directory with `public_context_policy.json`, `hazard_thresholds_v0.json`, `trust_gates_v0.json` instead of `oesis/assets/v0.1/config/inference/`.
-- `OESIS_RUNTIME_LANE` — explicit runtime lane (for example `v0.1`, `v1.0`); defaults to `v0.1`.
+- `OESIS_RUNTIME_LANE` — explicit runtime lane (for example `v0.1`, `v0.3`, `v1.0`); defaults to `v0.1`.
 - HTTP smoke (`make oesis-http-check`): `OESIS_HTTP_INGEST_PORT`, `OESIS_HTTP_INFERENCE_PORT`, `OESIS_HTTP_PARCEL_PORT` (defaults `8787`–`8789`); `OESIS_HTTP_HEALTH_RETRIES` (default `30`); `OESIS_HTTP_HEALTH_INTERVAL_S` (default `0.2`).
 
-The `v1.0` helper scripts use those same override hooks explicitly. They do not
-change the root defaults for `python3 -m oesis.checks`, `make oesis-accept`, or
-the root asset paths.
+The lane helper scripts (`oesis_v02_*`, `oesis_v03_*`, ..., `oesis_v10_*`) use
+those same override hooks explicitly. They do not change the root defaults for
+`python3 -m oesis.checks`, `make oesis-accept`, or the root asset paths.
 
 For per-request API override, services also accept `X-OESIS-Lane`.
 

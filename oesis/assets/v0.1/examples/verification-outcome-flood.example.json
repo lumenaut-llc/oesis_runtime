@@ -1,0 +1,21 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "verification_id": "verify_flood_0001",
+  "verified_at": "2026-04-14T21:10:00Z",
+  "intervention_ref": "intv_flood_0001",
+  "hazard_type": "flood",
+  "result_class": "improved",
+  "max_water_depth_cm": 3.8,
+  "actions_completed": [
+    "verify_sump_operational",
+    "move_critical_assets"
+  ],
+  "time_to_first_action_minutes": 7,
+  "damage_reported": false,
+  "damage_severity": "none",
+  "sump_pump_ran": true,
+  "power_maintained": true,
+  "assets_protected": true,
+  "time_to_resolution_minutes": 52,
+  "summary": "Water receded without reported damage after immediate sump verification."
+}

@@ -3,7 +3,7 @@
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 
@@ -150,6 +150,150 @@ def validate_verification_outcome(payload: dict):
             raise InferenceError(f"verification outcome missing required field: {field}")
 
 
+def _number_or_none(value):
+    return value if isinstance(value, (int, float)) else None
+
+
+def _infer_hazard_from_action(action_type: str | None) -> str:
+    if action_type in {"hvac_recirculate_on", "purifier_started", "fan_continuous_on", "close_windows"}:
+        return "smoke"
+    if action_type in {"verify_sump_operational", "move_critical_assets", "document_water_entry_point", "check_egress"}:
+        return "flood"
+    if action_type in {"pre_cool", "close_blinds_south_west", "check_ac_operational", "identify_cooling_center"}:
+        return "heat"
+    return "smoke"
+
+
+def _verification_window_minutes(*, hazard_type: str, smoke_config: dict) -> int:
+    if hazard_type == "smoke":
+        return int((smoke_config["verification_window_min_minutes"] + smoke_config["verification_window_max_minutes"]) / 2)
+    if hazard_type == "flood":
+        return 120
+    if hazard_type == "heat":
+        return 240
+    return 120
+
+
+def _build_action_logs(intervention_event: dict | None, verification_outcome: dict | None, smoke_config: dict) -> list[dict]:
+    if not intervention_event:
+        return []
+    hazard_type = (
+        verification_outcome.get("hazard_type")
+        if verification_outcome and isinstance(verification_outcome.get("hazard_type"), str)
+        else _infer_hazard_from_action(intervention_event.get("action_type"))
+    )
+    window = _verification_window_minutes(hazard_type=hazard_type, smoke_config=smoke_config)
+    verification_window_end = (
+        parse_time(intervention_event["occurred_at"]) + timedelta(minutes=window)
+    ).replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+    details = intervention_event.get("details", {})
+    return [
+        {
+            "action_log_id": intervention_event.get("event_id", "action_log_unknown"),
+            "hazard_type": hazard_type,
+            "action_id": intervention_event.get("action_type"),
+            "parcel_id": intervention_event.get("parcel_id"),
+            "logged_at": intervention_event.get("occurred_at"),
+            "completed_at": details.get("completed_at"),
+            "action_source": intervention_event.get("action_source", "unknown"),
+            "verification_window_end": verification_window_end,
+        }
+    ]
+
+
+def _build_outcome_records(verification_outcome: dict | None, smoke_config: dict) -> list[dict]:
+    if not verification_outcome:
+        return []
+
+    hazard_type = verification_outcome.get("hazard_type", "smoke")
+    result_class = verification_outcome.get("result_class", "inconclusive")
+    before = verification_outcome.get("before", {})
+    after = verification_outcome.get("after", {})
+    record = {
+        "outcome_record_id": verification_outcome.get("verification_id", "outcome_unknown"),
+        "verification_ref": verification_outcome.get("verification_id"),
+        "hazard_type": hazard_type,
+        "parcel_id": verification_outcome.get("parcel_id"),
+        "verified_at": verification_outcome.get("verified_at"),
+        "result_class": result_class,
+        "intervention_ref": verification_outcome.get("intervention_ref"),
+        "verification_window_minutes": verification_outcome.get("response_window_minutes"),
+    }
+
+    if hazard_type == "smoke":
+        before_indoor = _number_or_none(before.get("indoor_pm25_ugm3"))
+        after_indoor = _number_or_none(after.get("indoor_pm25_ugm3"))
+        before_outdoor = _number_or_none(before.get("outdoor_pm25_ugm3"))
+        after_outdoor = _number_or_none(after.get("outdoor_pm25_ugm3"))
+        delta_indoor = None
+        ratio = None
+        if before_indoor is not None and after_indoor is not None:
+            delta_indoor = round(before_indoor - after_indoor, 2)
+            ratio = round((before_indoor - after_indoor) / before_indoor, 2) if before_indoor > 0 else None
+        window = verification_outcome.get("response_window_minutes")
+        window_ok = (
+            isinstance(window, int)
+            and smoke_config["verification_window_min_minutes"] <= window <= smoke_config["verification_window_max_minutes"]
+        )
+        target_delta_met = bool(
+            result_class == "improved"
+            and window_ok
+            and delta_indoor is not None
+            and ratio is not None
+            and delta_indoor >= smoke_config["improvement_absolute_min_ugm3"]
+            and ratio >= smoke_config["improvement_ratio_min"]
+        )
+        outdoor_changed = (
+            before_outdoor is not None and after_outdoor is not None and abs(after_outdoor - before_outdoor) > 0
+        )
+        confounded = bool(
+            before_outdoor is not None
+            and after_outdoor is not None
+            and abs(after_outdoor - before_outdoor) > 20
+        )
+        record.update(
+            {
+                "before": before,
+                "after": after,
+                "delta_indoor_pm25": delta_indoor,
+                "target_delta_met": target_delta_met,
+                "outdoor_changed_materially": outdoor_changed,
+                "confounded": confounded,
+            }
+        )
+    elif hazard_type == "flood":
+        record.update(
+            {
+                "max_water_depth_cm": verification_outcome.get("max_water_depth_cm"),
+                "actions_completed": verification_outcome.get("actions_completed", []),
+                "time_to_first_action_minutes": verification_outcome.get("time_to_first_action_minutes"),
+                "damage_reported": verification_outcome.get("damage_reported"),
+                "damage_severity": verification_outcome.get("damage_severity"),
+                "sump_pump_ran": verification_outcome.get("sump_pump_ran"),
+                "power_maintained": verification_outcome.get("power_maintained"),
+                "assets_protected": verification_outcome.get("assets_protected"),
+                "time_to_resolution_minutes": verification_outcome.get("time_to_resolution_minutes"),
+            }
+        )
+    elif hazard_type == "heat":
+        record.update(
+            {
+                "forecast_peak_outdoor_f": verification_outcome.get("forecast_peak_outdoor_f"),
+                "actual_peak_outdoor_f": verification_outcome.get("actual_peak_outdoor_f"),
+                "indoor_temp_at_peak_outdoor": verification_outcome.get("indoor_temp_at_peak_outdoor"),
+                "indoor_never_exceeded_threshold": verification_outcome.get("indoor_never_exceeded_threshold"),
+                "max_indoor_temp_f": verification_outcome.get("max_indoor_temp_f"),
+                "rise_rate_after_intervention": verification_outcome.get("rise_rate_after_intervention"),
+                "pre_cool_executed": verification_outcome.get("pre_cool_executed"),
+                "pre_cool_buffer_achieved_f": verification_outcome.get("pre_cool_buffer_achieved_f"),
+                "power_maintained": verification_outcome.get("power_maintained"),
+                "vulnerable_occupant_safe": verification_outcome.get("vulnerable_occupant_safe"),
+            }
+        )
+
+    return [record]
+
+
 @lru_cache(maxsize=1)
 def _public_context_policy() -> dict:
     return load_json(PUBLIC_CONTEXT_POLICY_PATH)
@@ -288,6 +432,37 @@ def build_closed_loop_summary(
             summary["status"] = "inconclusive"
             summary["summary"] = "Smoke-response verification is present but remains inconclusive."
 
+    action_logs = _build_action_logs(intervention_event, verification_outcome, smoke_config)
+    outcome_records = _build_outcome_records(verification_outcome, smoke_config)
+    total_loops_triggered = len(action_logs)
+    loops_with_verified_outcomes = sum(
+        1 for item in outcome_records if item.get("result_class") in {"improved", "unchanged", "worsened"}
+    )
+    completion_ratio = (
+        round(loops_with_verified_outcomes / total_loops_triggered, 2) if total_loops_triggered else 0.0
+    )
+    by_hazard = {}
+    for hazard in ("smoke", "flood", "heat"):
+        hazard_triggered = sum(1 for item in action_logs if item.get("hazard_type") == hazard)
+        hazard_verified = sum(
+            1
+            for item in outcome_records
+            if item.get("hazard_type") == hazard and item.get("result_class") in {"improved", "unchanged", "worsened"}
+        )
+        by_hazard[hazard] = {
+            "loops_triggered": hazard_triggered,
+            "loops_verified": hazard_verified,
+            "completion_ratio": round(hazard_verified / hazard_triggered, 2) if hazard_triggered else 0.0,
+        }
+
+    summary["loop_completion_metrics"] = {
+        "total_loops_triggered": total_loops_triggered,
+        "loops_with_verified_outcomes": loops_with_verified_outcomes,
+        "completion_ratio": completion_ratio,
+        "by_hazard": by_hazard,
+    }
+    summary["action_logs"] = action_logs
+    summary["outcome_records"] = outcome_records
     return summary
 
 
@@ -1543,6 +1718,8 @@ def infer_parcel_state(
         verification_outcome=verification_outcome,
         smoke_config=_hazard_thresholds()["smoke"],
     )
+    action_logs = closed_loop_summary.get("action_logs", [])
+    outcome_records = closed_loop_summary.get("outcome_records", [])
     reasons = derive_reasons(
         payload,
         confidence,
@@ -1604,6 +1781,8 @@ def infer_parcel_state(
             "confidence": public_only_confidence,
         },
         "closed_loop_summary": closed_loop_summary,
+        "action_logs": action_logs,
+        "outcome_records": outcome_records,
         "contrastive_explanations": contrastive_explanations,
         "freshness": {
             "latest_observation_at": payload["observed_at"],

@@ -1,0 +1,20 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "verification_id": "verify_heat_0001",
+  "verified_at": "2026-07-18T23:00:00Z",
+  "intervention_ref": "intv_heat_0001",
+  "hazard_type": "heat",
+  "result_class": "improved",
+  "response_window_minutes": 480,
+  "forecast_peak_outdoor_f": 103.0,
+  "actual_peak_outdoor_f": 101.4,
+  "indoor_temp_at_peak_outdoor": 82.6,
+  "indoor_never_exceeded_threshold": true,
+  "max_indoor_temp_f": 83.1,
+  "rise_rate_after_intervention": 0.42,
+  "pre_cool_executed": true,
+  "pre_cool_buffer_achieved_f": 2.8,
+  "power_maintained": true,
+  "vulnerable_occupant_safe": true,
+  "summary": "Indoor conditions remained below threshold during peak heat after pre-cooling."
+}

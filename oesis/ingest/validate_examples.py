@@ -230,6 +230,86 @@ def validate_parcel_state(payload):
             )
         if "summary" in closed_loop:
             require_type(closed_loop["summary"], str, "closed_loop_summary.summary")
+        if "loop_completion_metrics" in closed_loop:
+            metrics = closed_loop["loop_completion_metrics"]
+            require_type(metrics, dict, "closed_loop_summary.loop_completion_metrics")
+            require_number(
+                metrics["total_loops_triggered"],
+                "closed_loop_summary.loop_completion_metrics.total_loops_triggered",
+                minimum=0,
+            )
+            require_number(
+                metrics["loops_with_verified_outcomes"],
+                "closed_loop_summary.loop_completion_metrics.loops_with_verified_outcomes",
+                minimum=0,
+            )
+            require_number(
+                metrics["completion_ratio"],
+                "closed_loop_summary.loop_completion_metrics.completion_ratio",
+                minimum=0,
+                maximum=1,
+            )
+            if "by_hazard" in metrics:
+                require_type(metrics["by_hazard"], dict, "closed_loop_summary.loop_completion_metrics.by_hazard")
+                for hazard in ("smoke", "flood", "heat"):
+                    if hazard not in metrics["by_hazard"]:
+                        continue
+                    hazard_metrics = metrics["by_hazard"][hazard]
+                    require_type(
+                        hazard_metrics,
+                        dict,
+                        f"closed_loop_summary.loop_completion_metrics.by_hazard.{hazard}",
+                    )
+                    require_number(
+                        hazard_metrics["loops_triggered"],
+                        f"closed_loop_summary.loop_completion_metrics.by_hazard.{hazard}.loops_triggered",
+                        minimum=0,
+                    )
+                    require_number(
+                        hazard_metrics["loops_verified"],
+                        f"closed_loop_summary.loop_completion_metrics.by_hazard.{hazard}.loops_verified",
+                        minimum=0,
+                    )
+                    require_number(
+                        hazard_metrics["completion_ratio"],
+                        f"closed_loop_summary.loop_completion_metrics.by_hazard.{hazard}.completion_ratio",
+                        minimum=0,
+                        maximum=1,
+                    )
+
+    if "action_logs" in payload:
+        action_logs = payload["action_logs"]
+        require_type(action_logs, list, "action_logs")
+        for i, record in enumerate(action_logs):
+            require_type(record, dict, f"action_logs[{i}]")
+            for field in ("action_log_id", "hazard_type", "action_id", "parcel_id", "logged_at", "action_source"):
+                require(field in record, f"action_logs[{i}] missing required field: {field}")
+            require_type(record["action_log_id"], str, f"action_logs[{i}].action_log_id")
+            require(record["hazard_type"] in {"smoke", "flood", "heat"}, f"action_logs[{i}].hazard_type invalid")
+            require_type(record["action_id"], str, f"action_logs[{i}].action_id")
+            require_type(record["parcel_id"], str, f"action_logs[{i}].parcel_id")
+            require_type(record["logged_at"], str, f"action_logs[{i}].logged_at")
+            require_type(record["action_source"], str, f"action_logs[{i}].action_source")
+            if "completed_at" in record and record["completed_at"] is not None:
+                require_type(record["completed_at"], str, f"action_logs[{i}].completed_at")
+            if "verification_window_end" in record:
+                require_type(record["verification_window_end"], str, f"action_logs[{i}].verification_window_end")
+
+    if "outcome_records" in payload:
+        outcome_records = payload["outcome_records"]
+        require_type(outcome_records, list, "outcome_records")
+        for i, record in enumerate(outcome_records):
+            require_type(record, dict, f"outcome_records[{i}]")
+            for field in ("outcome_record_id", "hazard_type", "parcel_id", "verified_at", "result_class"):
+                require(field in record, f"outcome_records[{i}] missing required field: {field}")
+            require_type(record["outcome_record_id"], str, f"outcome_records[{i}].outcome_record_id")
+            require(record["hazard_type"] in {"smoke", "flood", "heat"}, f"outcome_records[{i}].hazard_type invalid")
+            require_type(record["parcel_id"], str, f"outcome_records[{i}].parcel_id")
+            require_type(record["verified_at"], str, f"outcome_records[{i}].verified_at")
+            require(
+                record["result_class"] in {"improved", "unchanged", "worsened", "inconclusive"},
+                f"outcome_records[{i}].result_class invalid",
+            )
 
     hazard_statuses = payload["hazard_statuses"]
     require_type(hazard_statuses, dict, "hazard_statuses")

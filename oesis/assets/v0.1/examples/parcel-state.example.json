@@ -347,8 +347,34 @@
   "closed_loop_summary": {
     "hazard_type": "smoke",
     "status": "not_attempted",
-    "summary": "No smoke-response loop has been attempted yet."
+    "summary": "No smoke-response loop has been attempted yet.",
+    "loop_completion_metrics": {
+      "total_loops_triggered": 0,
+      "loops_with_verified_outcomes": 0,
+      "completion_ratio": 0.0,
+      "by_hazard": {
+        "smoke": {
+          "loops_triggered": 0,
+          "loops_verified": 0,
+          "completion_ratio": 0.0
+        },
+        "flood": {
+          "loops_triggered": 0,
+          "loops_verified": 0,
+          "completion_ratio": 0.0
+        },
+        "heat": {
+          "loops_triggered": 0,
+          "loops_verified": 0,
+          "completion_ratio": 0.0
+        }
+      }
+    },
+    "action_logs": [],
+    "outcome_records": []
   },
+  "action_logs": [],
+  "outcome_records": [],
   "contrastive_explanations": [
     {
       "explanation_id": "obs_example_0001:smoke:contrast",

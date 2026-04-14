@@ -31,7 +31,11 @@ This directory holds baseline runtime fixtures for the frozen `v0.1` lane.
 - `equipment-state-observation.example.json`
 - `source-provenance-record.example.json`
 - `intervention-event.example.json`
+- `intervention-event-flood.example.json`
+- `intervention-event-heat.example.json`
 - `verification-outcome.example.json`
+- `verification-outcome-flood.example.json`
+- `verification-outcome-heat.example.json`
 - `control-compatibility.example.json`
 
 These support objects belong to later lanes conceptually (`v1.5` bridge support

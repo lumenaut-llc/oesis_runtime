@@ -1,0 +1,11 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "event_id": "intv_heat_0001",
+  "occurred_at": "2026-07-18T15:00:00Z",
+  "action_type": "pre_cool",
+  "action_source": "system_advisory",
+  "details": {
+    "target_surface": "main_hvac",
+    "notes": "Pre-cool advisory triggered ahead of forecast peak."
+  }
+}

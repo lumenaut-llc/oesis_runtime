@@ -1,0 +1,11 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "event_id": "intv_flood_0001",
+  "occurred_at": "2026-04-14T19:35:00Z",
+  "action_type": "verify_sump_operational",
+  "action_source": "operator_manual",
+  "details": {
+    "target_surface": "sump_pump",
+    "notes": "Sump state verified after low-point contact trigger."
+  }
+}

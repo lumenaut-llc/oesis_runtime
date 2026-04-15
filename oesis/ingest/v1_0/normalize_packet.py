@@ -79,8 +79,8 @@ def normalize_packet(
     ingested_at: str | None = None,
     runtime_lane: str | None = None,
 ) -> dict:
-    # Dispatch to circuit-monitor normalizer if schema_id matches
-    if payload.get("schema_id") == "oesis.circuit-monitor.v1":
+    # Dispatch to circuit-monitor normalizer if schema_version (or legacy schema_id) matches
+    if payload.get("schema_version") == "oesis.circuit-monitor.v1" or payload.get("schema_id") == "oesis.circuit-monitor.v1":
         return _normalize_circuit(payload, parcel_id=parcel_id, ingested_at=ingested_at, runtime_lane=runtime_lane)
 
     # Dispatch to flood-node normalizer if schema_version matches

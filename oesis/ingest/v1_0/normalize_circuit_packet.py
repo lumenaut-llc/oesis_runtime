@@ -30,15 +30,17 @@ VALID_INFERRED_STATES = {
 
 def validate_circuit_monitor_packet(payload: dict) -> None:
     required = [
-        "schema_id", "schema_version", "node_id", "firmware_version",
+        "schema_version", "node_id", "firmware_version",
         "uptime_s", "observed_at", "circuits", "health",
     ]
     for field in required:
         if field not in payload:
             raise CircuitValidationError(f"circuit monitor packet missing required field: {field}")
 
-    if payload["schema_id"] != "oesis.circuit-monitor.v1":
-        raise CircuitValidationError(f"schema_id must be oesis.circuit-monitor.v1, got {payload['schema_id']!r}")
+    # Accept both schema_version (canonical) and legacy schema_id
+    schema = payload.get("schema_version") or payload.get("schema_id", "")
+    if schema != "oesis.circuit-monitor.v1":
+        raise CircuitValidationError(f"schema_version must be oesis.circuit-monitor.v1, got {schema!r}")
 
     circuits = payload["circuits"]
     if not isinstance(circuits, list) or len(circuits) == 0:
@@ -104,7 +106,7 @@ def normalize_circuit_packet(
         },
         "provenance": {
             "source_kind": "circuit_monitor_node",
-            "schema_version": payload["schema_id"],
+            "schema_version": payload.get("schema_version") or payload.get("schema_id", "oesis.circuit-monitor.v1"),
             "firmware_version": payload["firmware_version"],
             "raw_packet_ref": make_ref("rawpkt"),
         },

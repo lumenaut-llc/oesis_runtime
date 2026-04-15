@@ -1126,13 +1126,13 @@ def validate_normalized_observation(payload):
 
 def validate_circuit_monitor_observation(payload):
     required = [
-        "schema_id", "schema_version", "node_id", "firmware_version",
+        "schema_version", "node_id", "firmware_version",
         "uptime_s", "observed_at", "circuits", "health",
     ]
     for field in required:
         require(field in payload, f"circuit monitor observation missing required field: {field}")
 
-    require(payload["schema_id"] == "oesis.circuit-monitor.v1", "schema_id must be oesis.circuit-monitor.v1")
+    require(payload["schema_version"] == "oesis.circuit-monitor.v1", "schema_version must be oesis.circuit-monitor.v1")
     require_type(payload["node_id"], str, "node_id")
     require_type(payload["observed_at"], str, "observed_at")
     require_type(payload["firmware_version"], str, "firmware_version")

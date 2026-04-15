@@ -50,8 +50,7 @@
     "supported_lanes": ["v0.1", "v0.2", "v0.3", "v0.4", "v0.5", "v1.0"]
   },
   "raw_packet": {
-    "schema_id": "oesis.circuit-monitor.v1",
-    "schema_version": "1.0.0",
+    "schema_version": "oesis.circuit-monitor.v1",
     "node_id": "circuit-monitor-01",
     "firmware_version": "0.1.0",
     "uptime_s": 3600,

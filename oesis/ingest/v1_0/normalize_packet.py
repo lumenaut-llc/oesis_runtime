@@ -14,6 +14,8 @@ from oesis.common.repo_paths import EXAMPLES_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload
 
 from .normalize_circuit_packet import normalize_circuit_packet as _normalize_circuit
+from .normalize_flood_packet import normalize_flood_packet as _normalize_flood
+from .normalize_weather_pm_packet import normalize_weather_pm_packet as _normalize_weather_pm
 from .validate_examples import ValidationError, load_json, validate_node_observation
 
 
@@ -80,6 +82,14 @@ def normalize_packet(
     # Dispatch to circuit-monitor normalizer if schema_id matches
     if payload.get("schema_id") == "oesis.circuit-monitor.v1":
         return _normalize_circuit(payload, parcel_id=parcel_id, ingested_at=ingested_at, runtime_lane=runtime_lane)
+
+    # Dispatch to flood-node normalizer if schema_version matches
+    if payload.get("schema_version") == "oesis.flood-node.v1":
+        return _normalize_flood(payload, parcel_id=parcel_id, ingested_at=ingested_at, runtime_lane=runtime_lane)
+
+    # Dispatch to weather-pm-mast normalizer if schema_version matches
+    if payload.get("schema_version") == "oesis.weather-pm-mast.v1":
+        return _normalize_weather_pm(payload, parcel_id=parcel_id, ingested_at=ingested_at, runtime_lane=runtime_lane)
 
     validate_node_observation(payload)
     ingested_at = ingested_at or now_iso()

@@ -1,0 +1,29 @@
+{
+  "schema_version": "oesis.flood-node.v1",
+  "node_id": "flood-node-01",
+  "observed_at": "2026-03-31T18:45:00Z",
+  "firmware_version": "0.1.0",
+  "location_mode": "outdoor",
+  "install_role": "runoff_low_point",
+  "sensors": {
+    "mb7389": {
+      "present": true,
+      "analog_raw": 1876,
+      "sensor_voltage_v": 1.51,
+      "distance_cm": 63.2
+    }
+  },
+  "derived": {
+    "dry_reference_distance_cm": 70.0,
+    "water_depth_cm": 6.8,
+    "rise_rate_cm_per_hr": 1.4,
+    "calibration_state": "provisional"
+  },
+  "health": {
+    "uptime_s": 420,
+    "wifi_connected": false,
+    "free_heap_bytes": 214520,
+    "read_failures_total": 0,
+    "last_error": null
+  }
+}

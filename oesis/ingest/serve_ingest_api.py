@@ -17,7 +17,7 @@ from oesis.common.runtime_lane import (
 )
 from oesis.ingest import lane_module as ingest_lane_module
 
-SUPPORTED_SCHEMAS = ["oesis.bench-air.v1", "oesis.circuit-monitor.v1"]
+SUPPORTED_SCHEMAS = ["oesis.bench-air.v1", "oesis.circuit-monitor.v1", "oesis.flood-node.v1", "oesis.weather-pm-mast.v1"]
 
 _last_lock = threading.Lock()
 _last_snapshot: dict | None = None

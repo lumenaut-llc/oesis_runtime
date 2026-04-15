@@ -20,7 +20,7 @@ from .normalize_packet import normalize_packet
 from .validate_examples import ValidationError
 
 
-SUPPORTED_SCHEMAS = ["oesis.bench-air.v1", "oesis.circuit-monitor.v1"]
+SUPPORTED_SCHEMAS = ["oesis.bench-air.v1", "oesis.circuit-monitor.v1", "oesis.flood-node.v1", "oesis.weather-pm-mast.v1"]
 
 _last_lock = threading.Lock()
 _last_snapshot: dict | None = None
@@ -171,6 +171,14 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                         },
                         {
                             "schema_version": "oesis.circuit-monitor.v1",
+                            "status": "active",
+                        },
+                        {
+                            "schema_version": "oesis.flood-node.v1",
+                            "status": "active",
+                        },
+                        {
+                            "schema_version": "oesis.weather-pm-mast.v1",
                             "status": "active",
                         },
                     ],

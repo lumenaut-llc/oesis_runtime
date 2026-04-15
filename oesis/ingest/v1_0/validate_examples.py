@@ -1193,6 +1193,187 @@ def validate_normalized_circuit_observation(payload):
     require_type(provenance["raw_packet_ref"], str, "provenance.raw_packet_ref")
 
 
+def validate_weather_pm_observation(payload):
+    required = [
+        "schema_version", "node_id", "observed_at", "firmware_version",
+        "location_mode", "sensors", "health",
+    ]
+    for field in required:
+        require(field in payload, f"weather-pm observation missing required field: {field}")
+
+    require(payload["schema_version"] == "oesis.weather-pm-mast.v1", "schema_version must be oesis.weather-pm-mast.v1")
+    require_type(payload["node_id"], str, "node_id")
+    require_type(payload["observed_at"], str, "observed_at")
+    require_type(payload["firmware_version"], str, "firmware_version")
+    require(payload["location_mode"] in {"indoor", "sheltered", "outdoor"}, "location_mode invalid")
+
+    sensors = payload["sensors"]
+    require_type(sensors, dict, "sensors")
+
+    if "sht45" in sensors:
+        sht45 = sensors["sht45"]
+        require_type(sht45, dict, "sensors.sht45")
+        require_type(sht45["present"], bool, "sensors.sht45.present")
+        if sht45["present"]:
+            require_number(sht45["temperature_c"], "sensors.sht45.temperature_c")
+            require_number(sht45["relative_humidity_pct"], "sensors.sht45.relative_humidity_pct", 0, 100)
+
+    if "bme680" in sensors:
+        bme680 = sensors["bme680"]
+        require_type(bme680, dict, "sensors.bme680")
+        require_type(bme680["present"], bool, "sensors.bme680.present")
+        if bme680["present"]:
+            require_number(bme680["temperature_c"], "sensors.bme680.temperature_c")
+            require_number(bme680["relative_humidity_pct"], "sensors.bme680.relative_humidity_pct", 0, 100)
+            require_number(bme680["pressure_hpa"], "sensors.bme680.pressure_hpa")
+            require_number(bme680["gas_resistance_ohm"], "sensors.bme680.gas_resistance_ohm", exclusive_minimum=0)
+
+    if "sps30" in sensors:
+        sps30 = sensors["sps30"]
+        require_type(sps30, dict, "sensors.sps30")
+        require_type(sps30["present"], bool, "sensors.sps30.present")
+        if sps30["present"]:
+            require_number(sps30["pm1_ugm3"], "sensors.sps30.pm1_ugm3", minimum=0)
+            require_number(sps30["pm25_ugm3"], "sensors.sps30.pm25_ugm3", minimum=0)
+            require_number(sps30["pm4_ugm3"], "sensors.sps30.pm4_ugm3", minimum=0)
+            require_number(sps30["pm10_ugm3"], "sensors.sps30.pm10_ugm3", minimum=0)
+            require_number(sps30["typical_particle_size_um"], "sensors.sps30.typical_particle_size_um", minimum=0)
+
+    health = payload["health"]
+    require_type(health, dict, "health")
+    require_number(health["uptime_s"], "health.uptime_s", minimum=0)
+    require_type(health["wifi_connected"], bool, "health.wifi_connected")
+    require_number(health["free_heap_bytes"], "health.free_heap_bytes", minimum=0)
+    require_number(health["read_failures_total"], "health.read_failures_total", minimum=0)
+    require(isinstance(health["last_error"], (str, type(None))), "health.last_error: expected string or null")
+
+
+def validate_normalized_weather_pm_observation(payload):
+    required = [
+        "observation_id", "node_id", "parcel_id", "observed_at",
+        "ingested_at", "observation_type", "values", "health", "provenance",
+    ]
+    for field in required:
+        require(field in payload, f"normalized weather-pm observation missing required field: {field}")
+
+    require(payload["observation_type"] == "air.pm.snapshot", "observation_type must be air.pm.snapshot")
+
+    values = payload["values"]
+    require_type(values, dict, "values")
+    if "pm1_ugm3" in values:
+        require_number(values["pm1_ugm3"], "values.pm1_ugm3", minimum=0)
+    if "pm25_ugm3" in values:
+        require_number(values["pm25_ugm3"], "values.pm25_ugm3", minimum=0)
+    if "pm4_ugm3" in values:
+        require_number(values["pm4_ugm3"], "values.pm4_ugm3", minimum=0)
+    if "pm10_ugm3" in values:
+        require_number(values["pm10_ugm3"], "values.pm10_ugm3", minimum=0)
+    if "typical_particle_size_um" in values:
+        require_number(values["typical_particle_size_um"], "values.typical_particle_size_um", minimum=0)
+    if "temperature_c_primary" in values:
+        require_number(values["temperature_c_primary"], "values.temperature_c_primary")
+    if "relative_humidity_pct_primary" in values:
+        require_number(values["relative_humidity_pct_primary"], "values.relative_humidity_pct_primary", 0, 100)
+    if "pressure_hpa" in values:
+        require_number(values["pressure_hpa"], "values.pressure_hpa")
+    if "gas_resistance_ohm" in values:
+        require_number(values["gas_resistance_ohm"], "values.gas_resistance_ohm", exclusive_minimum=0)
+
+    health = payload["health"]
+    require_type(health, dict, "health")
+    require_number(health["uptime_s"], "health.uptime_s", minimum=0)
+    require_number(health["read_failures_total"], "health.read_failures_total", minimum=0)
+
+    provenance = payload["provenance"]
+    require_type(provenance, dict, "provenance")
+    require(provenance["source_kind"] == "weather_pm_node", "provenance.source_kind invalid")
+    require(provenance["schema_version"] == "oesis.weather-pm-mast.v1", "provenance.schema_version invalid")
+    require_type(provenance["firmware_version"], str, "provenance.firmware_version")
+    require_type(provenance["raw_packet_ref"], str, "provenance.raw_packet_ref")
+
+
+def validate_flood_observation(payload):
+    required = [
+        "schema_version", "node_id", "firmware_version",
+        "observed_at", "location_mode", "install_role",
+        "sensors", "derived", "health",
+    ]
+    for field in required:
+        require(field in payload, f"flood observation missing required field: {field}")
+
+    require(payload["schema_version"] == "oesis.flood-node.v1", "schema_version must be oesis.flood-node.v1")
+    require_type(payload["node_id"], str, "node_id")
+    require_type(payload["observed_at"], str, "observed_at")
+    require_type(payload["firmware_version"], str, "firmware_version")
+    require(payload["location_mode"] in {"indoor", "sheltered", "outdoor"}, "location_mode invalid")
+    require_type(payload["install_role"], str, "install_role")
+
+    sensors = payload["sensors"]
+    require_type(sensors, dict, "sensors")
+    require("mb7389" in sensors, "sensors missing mb7389")
+
+    mb7389 = sensors["mb7389"]
+    require_type(mb7389, dict, "sensors.mb7389")
+    require_type(mb7389["present"], bool, "sensors.mb7389.present")
+    require_number(mb7389["analog_raw"], "sensors.mb7389.analog_raw", minimum=0)
+    require_number(mb7389["sensor_voltage_v"], "sensors.mb7389.sensor_voltage_v", minimum=0)
+    require_number(mb7389["distance_cm"], "sensors.mb7389.distance_cm", minimum=0)
+
+    derived = payload["derived"]
+    require_type(derived, dict, "derived")
+    require_number(derived["dry_reference_distance_cm"], "derived.dry_reference_distance_cm", minimum=0)
+    require_number(derived["water_depth_cm"], "derived.water_depth_cm", minimum=0)
+    require_number(derived["rise_rate_cm_per_hr"], "derived.rise_rate_cm_per_hr")
+    require(
+        derived["calibration_state"] in {"provisional", "field_validated", "factory"},
+        "derived.calibration_state invalid",
+    )
+
+    health = payload["health"]
+    require_type(health, dict, "health")
+    require_number(health["uptime_s"], "health.uptime_s", minimum=0)
+    require_type(health["wifi_connected"], bool, "health.wifi_connected")
+    require_number(health["free_heap_bytes"], "health.free_heap_bytes", minimum=0)
+    require_number(health["read_failures_total"], "health.read_failures_total", minimum=0)
+    require(isinstance(health["last_error"], (str, type(None))), "health.last_error: expected string or null")
+
+
+def validate_normalized_flood_observation(payload):
+    required = [
+        "observation_id", "node_id", "parcel_id", "observed_at",
+        "ingested_at", "observation_type", "values", "health", "provenance",
+    ]
+    for field in required:
+        require(field in payload, f"normalized flood observation missing required field: {field}")
+
+    require(payload["observation_type"] == "flood.low_point.snapshot", "observation_type must be flood.low_point.snapshot")
+
+    values = payload["values"]
+    require_type(values, dict, "values")
+    require_number(values["distance_cm"], "values.distance_cm", minimum=0)
+    require_number(values["sensor_voltage_v"], "values.sensor_voltage_v", minimum=0)
+    require_number(values["analog_raw"], "values.analog_raw", minimum=0)
+    require_number(values["dry_reference_distance_cm"], "values.dry_reference_distance_cm", minimum=0)
+    require_number(values["water_depth_cm"], "values.water_depth_cm", minimum=0)
+    require_number(values["rise_rate_cm_per_hr"], "values.rise_rate_cm_per_hr")
+    require(
+        values["calibration_state"] in {"provisional", "field_validated", "factory"},
+        "values.calibration_state invalid",
+    )
+
+    health = payload["health"]
+    require_type(health, dict, "health")
+    require_number(health["uptime_s"], "health.uptime_s", minimum=0)
+    require_number(health["read_failures_total"], "health.read_failures_total", minimum=0)
+
+    provenance = payload["provenance"]
+    require_type(provenance, dict, "provenance")
+    require(provenance["source_kind"] == "flood_node", "provenance.source_kind invalid")
+    require(provenance["schema_version"] == "oesis.flood-node.v1", "provenance.schema_version invalid")
+    require_type(provenance["firmware_version"], str, "provenance.firmware_version")
+    require_type(provenance["raw_packet_ref"], str, "provenance.raw_packet_ref")
+
+
 def main():
     files = [
         ("node observation", EXAMPLES_DIR / "node-observation.example.json", validate_node_observation),
@@ -1223,6 +1404,10 @@ def main():
         ("retention cleanup report", EXAMPLES_DIR / "retention-cleanup-report.example.json", validate_retention_cleanup_report),
         ("circuit monitor observation", EXAMPLES_DIR / "circuit-monitor-observation.example.json", validate_circuit_monitor_observation),
         ("normalized circuit observation", EXAMPLES_DIR / "normalized-circuit-observation.example.json", validate_normalized_circuit_observation),
+        ("weather-pm observation", EXAMPLES_DIR / "weather-pm-observation.example.json", validate_weather_pm_observation),
+        ("normalized weather-pm observation", EXAMPLES_DIR / "normalized-weather-pm-observation.example.json", validate_normalized_weather_pm_observation),
+        ("flood observation", EXAMPLES_DIR / "flood-observation.example.json", validate_flood_observation),
+        ("normalized flood observation", EXAMPLES_DIR / "normalized-flood-observation.example.json", validate_normalized_flood_observation),
     ]
 
     failures = []

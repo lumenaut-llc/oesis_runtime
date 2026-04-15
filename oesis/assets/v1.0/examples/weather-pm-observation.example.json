@@ -1,0 +1,43 @@
+{
+  "schema_version": "oesis.weather-pm-mast.v1",
+  "node_id": "weather-pm-mast-01",
+  "observed_at": "2026-04-14T15:00:00Z",
+  "firmware_version": "0.1.0",
+  "location_mode": "outdoor",
+  "sensors": {
+    "sht45": {
+      "present": true,
+      "temperature_c": 17.9,
+      "relative_humidity_pct": 66.2
+    },
+    "bme680": {
+      "present": true,
+      "temperature_c": 18.6,
+      "relative_humidity_pct": 64.4,
+      "pressure_hpa": 1013.9,
+      "gas_resistance_ohm": 149880
+    },
+    "sps30": {
+      "present": true,
+      "pm1_ugm3": 3.2,
+      "pm25_ugm3": 8.7,
+      "pm4_ugm3": 10.1,
+      "pm10_ugm3": 11.4,
+      "typical_particle_size_um": 1.8
+    }
+  },
+  "derived": {
+    "temperature_c_primary": 17.9,
+    "relative_humidity_pct_primary": 66.2,
+    "pressure_hpa": 1013.9,
+    "voc_trend_source": "gas_resistance_ohm",
+    "pm25_ugm3": 8.7
+  },
+  "health": {
+    "uptime_s": 1820,
+    "wifi_connected": false,
+    "free_heap_bytes": 214332,
+    "read_failures_total": 0,
+    "last_error": null
+  }
+}

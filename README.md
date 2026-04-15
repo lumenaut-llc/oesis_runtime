@@ -1,10 +1,10 @@
 # OESIS Runtime
 
-Standalone runtime for the Open Environmental Sensing and Inference System reference path: ingest, inference, parcel platform, and smoke fixtures. The program specifications and contracts live in the sibling repository [`oesis-program-specs`](https://github.com/lumenaut-llc/oesis-program-specs).
+OESIS (Open Environmental Sensing and Inference System) is a runtime that turns raw sensor data into actionable environmental assessments for residential parcels. It ingests node packets (air quality, weather, flood level), runs inference against configurable hazard thresholds, and produces a parcel view — a dwelling-facing status surface summarizing conditions and risks.
 
-## Setup
+Formal specifications and contracts live in [`oesis-program-specs`](https://github.com/lumenaut-llc/oesis-program-specs).
 
-From this repository root (recommended: use a virtual environment):
+## Getting started
 
 ```bash
 python3 -m venv .venv
@@ -12,148 +12,128 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
-After that, `python3 -m oesis...` and the `Makefile` targets work from any current working directory.
+Run the reference pipeline end-to-end (sensor packet in, parcel view out):
 
-Keep packaged examples under `oesis/assets/v0.1/examples/` in sync with `contracts/examples/` in **oesis-program-specs** when you change contracts.
+```bash
+make oesis-demo
+```
 
-## v0.1 product slice (frozen scope, evolving implementation)
+Run the full offline acceptance suite:
 
-The v0.1 scope is frozen — no new capabilities are added. The implementation and examples continue to evolve within that scope (bug fixes, multi-hazard generalization, clearer examples). Implementation and acceptance tests target:
+```bash
+make oesis-check
+```
 
-- **One parcel** — a single `parcel_id` and parcel-context fixture for demos and checks.
-- **One bench-air node** — `oesis.bench-air.v1` packets; default fixture uses `bench-air-01`.
-- **One software path** — ingest → normalized observation, plus parcel and public context → inference → parcel view (and evidence summary on the offline path).
-- **One parcel view** — dwelling-facing status surface from the parcel platform formatter.
+## How it works
 
-Canonical write-ups in **oesis-program-specs**: [`v0.1-runtime-modules.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/v0.1-runtime-modules.md) (package map) and [`v0.1-acceptance-criteria.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/v0.1-acceptance-criteria.md) (CLI/HTTP acceptance).
+```
+sensor packet ──► ingest ──► normalized observation
+                                      │
+                  parcel context ──────┤
+                  public context ──────┤
+                                       ▼
+                                   inference ──► parcel state
+                                                     │
+                                                     ▼
+                                              parcel view (dwelling-facing)
+```
 
-## Quick commands
+1. **Ingest** — validates and normalizes a raw node packet (e.g. `oesis.bench-air.v1`) into a standard observation.
+2. **Inference** — combines the observation with parcel context (installed nodes, location) and public context (regional thresholds) to assess hazard levels.
+3. **Parcel platform** — formats the inference result into a parcel view for the dwelling occupant.
 
-| Target | What it does |
-|--------|----------------|
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `make oesis-demo` | Run the reference pipeline; prints the parcel view JSON to stdout. |
 | `make oesis-validate` | Validate packaged example JSON against schemas. |
-| `make oesis-demo` | Run the reference pipeline (packet → parcel view); prints JSON on stdout. |
-| `make oesis-accept` | Offline v0.1 acceptance: build flow + verify artifact shapes (`python3 -m oesis.checks`). |
-| `make oesis-check` | Validate examples, run demo, verify output shape (CLI path). |
-| `make oesis-http-check` | Start local HTTP services and verify ingest → inference → parcel view. |
+| `make oesis-check` | Validate examples, run demo, and verify output shape. |
+| `make oesis-accept` | Offline acceptance: build the full flow and verify artifact shapes. |
+| `make oesis-http-check` | Start local HTTP services and verify the full round-trip. |
 
-These default commands remain pinned to the `v0.1` scope.
+## HTTP services
 
-## Bench-air serial → ingest bridge
+The runtime exposes three HTTP services for live operation:
 
-With hardware emitting one `oesis.bench-air.v1` JSON line per interval (see [`operator-runbook.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/hardware/bench-air-node/operator-runbook.md) in **oesis-program-specs**), you can forward packets to the local ingest API without copying files:
+```bash
+# Start the ingest API (receives node packets)
+python3 -m oesis.ingest.serve_ingest_api --host 127.0.0.1 --port 8787
+```
+
+**Endpoints:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /v1/ingest/node-packets` | Submit a raw node packet for normalization. |
+| `GET /v1/ingest/live` | Browser dashboard showing the last accepted observation. |
+| `GET /v1/ingest/debug/last` | JSON of the last accepted observation (for scripts). |
+
+For hardware on the LAN, bind with `--host 0.0.0.0` and use your machine's LAN IP.
+
+### Serial bridge (hardware)
+
+If you have a bench-air node emitting JSON over serial:
 
 ```bash
 pip install -e ".[serial-bridge]"
-python3 -m oesis.ingest.serve_ingest_api --host 127.0.0.1 --port 8787   # separate terminal
-python3 -m oesis.ingest.serial_bridge --serial-port /dev/cu.usbmodem101 --parcel-id parcel_demo_001
+python3 -m oesis.ingest.serial_bridge \
+  --serial-port /dev/cu.usbmodem101 \
+  --parcel-id parcel_demo_001
 ```
 
-Use `--dry-run` to confirm lines parse on the wire, or `--once` for a single post. Defaults match `make oesis-http-check` (`127.0.0.1:8787`, path `/v1/ingest/node-packets`).
+Use `--dry-run` to verify parsing without posting, or `--once` for a single packet.
 
-## Ingest live dashboard (operator)
+## Runtime lanes
 
-While `serve_ingest_api` is running, open **`http://<host>:<port>/v1/ingest/live`** in a browser to poll the **last accepted** normalized observation (in-memory only; process restart clears it). JSON for scripts: **`GET /v1/ingest/debug/last`**. For hardware on the LAN, bind ingest with **`--host 0.0.0.0`** and use your machine’s LAN IP in the URL.
+The runtime supports multiple capability lanes. Each lane builds on the previous one, adding new node types, inference features, or governance capabilities. The default lane is `v0.1`.
 
-## Parallel lanes
+| Lane | What it adds | Commands |
+|------|-------------|----------|
+| **v0.1** (default) | One parcel, one bench-air node, one pipeline path. | `make oesis-check` |
+| **v0.2** | Mast-lite node (sheltered outdoor) alongside bench-air. Indoor vs outdoor evidence source mix. | `make oesis-v02-check` |
+| **v0.3** | Flood node (`oesis.flood-node.v1`). Three-node parcel kit: bench-air + mast-lite + flood. | `make oesis-v03-check` |
+| **v0.4** | Node registry lifecycle (load, validate, filter). Multi-node evidence composition with calibration weighting. | `make oesis-v04-check` |
+| **v0.5** | Governance enforcement: consent lifecycle, retention cleanup, data export, revocation suppression. | `make oesis-v05-check` |
+| **v1.0** | Future target. | `make oesis-v10-check` |
 
-This repository carries explicit opt-in lanes beside the frozen default.
-See [`pre-1.0-version-progression.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/pre-1.0-version-progression.md) in **oesis-program-specs** for the formal slice definitions.
+Each lane also has `make oesis-v0X-accept` (offline acceptance) and `make oesis-v0X-http-check` (HTTP round-trip).
 
-### v0.2 lane (indoor + sheltered-outdoor parcel kit)
+To select a lane, set the environment variable or pass a header:
 
-- `make oesis-v02-accept`
-- `make oesis-v02-check`
-- `make oesis-v02-http-check`
+```bash
+# Via environment variable
+OESIS_RUNTIME_LANE=v0.3 make oesis-demo
 
-v0.2 extends v0.1 with mast-lite (sheltered outdoor node) alongside bench-air
-(indoor), stronger node registry, and indoor vs outdoor evidence source mix.
+# Via HTTP header on API requests
+curl -H "X-OESIS-Lane: v0.3" ...
+```
 
-### v0.3 lane (flood-capable runtime)
+Lanes work by overlaying lane-specific assets on the `v0.1` baseline. Files live under `oesis/assets/<lane>/` — anything not overridden falls back to `v0.1`. See [`pre-1.0-version-progression.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/pre-1.0-version-progression.md) for formal slice definitions.
 
-- `make oesis-v03-accept`
-- `make oesis-v03-check`
-- `make oesis-v03-http-check`
+## Versioning
 
-v0.3 extends v0.2 with a flood-node (`oesis.flood-node.v1` schema,
-`flood.low_point.snapshot` observation type) giving a three-node parcel kit
-(bench-air + mast-lite + flood-node).
+Three independent version identifiers appear in this project:
 
-### v0.4 lane (multi-node registry + evidence composition)
+| Identifier | Example | What it tracks |
+|------------|---------|----------------|
+| **Package version** | `0.1.0` in `pyproject.toml` | Installable release. Increments on code changes. |
+| **Runtime lane** | `v0.1`–`v0.5`, `v1.0` | Which capability set is active. |
+| **API version** | `v1` in `/v1/...` paths | HTTP wire protocol. |
 
-- `make oesis-v04-accept`
-- `make oesis-v04-check`
-- `make oesis-v04-http-check`
+These are independent — a new package release doesn't create a lane, and a new lane doesn't change the API version.
 
-v0.4 extends v0.3 with node registry lifecycle (load, validate, filter active,
-bind to observations) and multi-node evidence composition with
-calibration-weighted contributions and source diversity tracking.
+## Environment variables
 
-### v0.5 lane (governance enforcement)
-
-- `make oesis-v05-accept`
-- `make oesis-v05-check`
-- `make oesis-v05-http-check`
-
-v0.5 extends v0.4 with real governance enforcement: consent lifecycle (grant,
-revoke, status, history), retention cleanup, export bundles, and revocation
-suppression in the shared map.
-
-### v1.0 lane (future target)
-
-- `make oesis-v10-accept`
-- `make oesis-v10-check`
-- `make oesis-v10-http-check`
-
-All lane commands materialize a merged asset set from:
-
-- baseline `oesis/assets/v0.1/` (examples and inference config)
-- additive overrides under `oesis/assets/<lane>/`
-
-This keeps `v0.1` stable by default while giving each lane a real parallel home.
-If a lane does not yet override a file, the `v0.1` baseline remains the
-explicit fallback for that opt-in lane only.
-
-## Pre-1.0 lane policy
-
-The runtime models all v0.x slices as real lanes alongside the frozen `v0.1` default and the `v1.0` future target. Each slice builds on the previous one.
-
-**Program-specs** defines promotions formally in sibling [`oesis-program-specs/architecture/current/pre-1.0-version-progression.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/current/pre-1.0-version-progression.md) and the promotion matrix at [`oesis-program-specs/architecture/system/version-and-promotion-matrix.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/version-and-promotion-matrix.md).
-
-Current lanes:
-
-- **`v0.1`** — frozen default runtime slice (one parcel, one bench-air node)
-- **`v0.2`** — indoor + sheltered-outdoor parcel kit (bench-air + mast-lite)
-- **`v0.3`** — flood-capable runtime (bench-air + mast-lite + flood-node)
-- **`v0.4`** — multi-node registry lifecycle + evidence composition
-- **`v0.5`** — governance enforcement (consent, retention, export, revocation)
-- **`v1.0`** — additive future lane staging area
-
-## Version axes
-
-Three version identifiers appear in this project. They track different concerns:
-
-| Identifier | Where | What it tracks |
-|------------|-------|----------------|
-| Package version (`0.1.0` in `pyproject.toml`) | Python packaging | Installable release of the runtime implementation. Increments on code changes. |
-| Runtime lane (`v0.1`–`v0.5`, `v1.0`) | `OESIS_RUNTIME_LANE`, `X-OESIS-Lane` header | Which asset and behavior set is active. Lanes are defined in `oesis-program-specs`. |
-| API version (`v1`) | HTTP path prefix `/v1/...`, `versioning.api_version` in payloads | HTTP service contract. Tracks the wire protocol, not the program phase or lane. |
-
-These are independent. A package release `0.2.0` does not create a new lane; a new lane does not change the HTTP API version.
-
-## Optional environment overrides
-
-- `OESIS_CONTRACTS_BUNDLE_DIR` — directory containing an `examples/` subtree to use instead of `oesis/assets/v0.1/examples`.
-- `OESIS_INFERENCE_CONFIG_DIR` — directory with `public_context_policy.json`, `hazard_thresholds_v0.json`, `trust_gates_v0.json` instead of `oesis/assets/v0.1/config/inference/`.
-- `OESIS_RUNTIME_LANE` — explicit runtime lane (for example `v0.1`, `v0.3`, `v1.0`); defaults to `v0.1`.
-- HTTP smoke (`make oesis-http-check`): `OESIS_HTTP_INGEST_PORT`, `OESIS_HTTP_INFERENCE_PORT`, `OESIS_HTTP_PARCEL_PORT` (defaults `8787`–`8789`); `OESIS_HTTP_HEALTH_RETRIES` (default `30`); `OESIS_HTTP_HEALTH_INTERVAL_S` (default `0.2`).
-
-The lane helper scripts (`oesis_v02_*`, `oesis_v03_*`, ..., `oesis_v10_*`) use
-those same override hooks explicitly. They do not change the root defaults for
-`python3 -m oesis.checks`, `make oesis-accept`, or the root asset paths.
-
-For per-request API override, services also accept `X-OESIS-Lane`.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OESIS_RUNTIME_LANE` | `v0.1` | Active runtime lane. |
+| `OESIS_CONTRACTS_BUNDLE_DIR` | `oesis/assets/v0.1/examples` | Custom examples directory. |
+| `OESIS_INFERENCE_CONFIG_DIR` | `oesis/assets/v0.1/config/inference` | Custom inference config directory. |
+| `OESIS_HTTP_INGEST_PORT` | `8787` | Ingest service port. |
+| `OESIS_HTTP_INFERENCE_PORT` | `8788` | Inference service port. |
+| `OESIS_HTTP_PARCEL_PORT` | `8789` | Parcel platform service port. |
 
 ## License
 
-This reference runtime is licensed under the **GNU Affero General Public License v3.0 or later**. See [`LICENSE`](LICENSE). Contribution expectations: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Licensed under the **GNU Affero General Public License v3.0 or later**. See [`LICENSE`](LICENSE). Contribution expectations: [`CONTRIBUTING.md`](CONTRIBUTING.md).

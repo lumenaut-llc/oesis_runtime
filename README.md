@@ -49,7 +49,12 @@ sensor packet ──► ingest ──► normalized observation
 | `make oesis-demo` | Run the reference pipeline; prints the parcel view JSON to stdout. |
 | `make oesis-validate` | Validate packaged example JSON against schemas. |
 | `make oesis-check` | Validate examples, run demo, and verify output shape. |
-| `make oesis-accept` | Offline acceptance: build the full flow and verify artifact shapes. |
+| `make oesis-accept` | Offline acceptance: build the full flow and verify artifact shapes (v0.1). |
+| `make oesis-v02-accept` | Offline acceptance for v0.2 (indoor + outdoor). |
+| `make oesis-v03-accept` | Offline acceptance for v0.3 (flood-capable). |
+| `make oesis-v04-accept` | Offline acceptance for v0.4 (multi-node registry). |
+| `make oesis-v05-accept` | Offline acceptance for v0.5 (governance enforcement). |
+| `make oesis-v10-accept` | Offline acceptance for v1.0 (extended support objects + trust scoring). |
 | `make oesis-http-check` | Start local HTTP services and verify the full round-trip. |
 
 ## HTTP services
@@ -95,7 +100,7 @@ The runtime supports multiple capability lanes. Each lane builds on the previous
 | **v0.3** | Flood node (`oesis.flood-node.v1`). Three-node parcel kit: bench-air + mast-lite + flood. | `make oesis-v03-check` |
 | **v0.4** | Node registry lifecycle (load, validate, filter). Multi-node evidence composition with calibration weighting. | `make oesis-v04-check` |
 | **v0.5** | Governance enforcement: consent lifecycle, retention cleanup, data export, revocation suppression. | `make oesis-v05-check` |
-| **v1.0** | Future target. | `make oesis-v10-check` |
+| **v1.0** | Extended support objects: house state, intervention tracking, verification outcomes, trust scoring, contrastive explanations, divergence analysis. | `make oesis-v10-check` |
 
 Each lane also has `make oesis-v0X-accept` (offline acceptance) and `make oesis-v0X-http-check` (HTTP round-trip).
 
@@ -133,6 +138,57 @@ These are independent — a new package release doesn't create a lane, and a new
 | `OESIS_HTTP_INGEST_PORT` | `8787` | Ingest service port. |
 | `OESIS_HTTP_INFERENCE_PORT` | `8788` | Inference service port. |
 | `OESIS_HTTP_PARCEL_PORT` | `8789` | Parcel platform service port. |
+
+## Deployment
+
+The runtime runs as a set of independent Python HTTP services. There is no container image or orchestration layer yet — deployment is manual.
+
+### Running all services
+
+```bash
+# Terminal 1: Ingest API (receives sensor packets)
+OESIS_RUNTIME_LANE=v1.0 python3 -m oesis.ingest.serve_ingest_api \
+  --host 127.0.0.1 --port 8787
+
+# Terminal 2: Parcel platform API (serves parcel views, governance)
+OESIS_RUNTIME_LANE=v1.0 python3 -m oesis.parcel_platform.serve_parcel_api \
+  --host 127.0.0.1 --port 8789
+```
+
+For LAN access (e.g., sensor nodes posting to the ingest API), bind with `--host 0.0.0.0`.
+
+### With a hardware node
+
+If you have a bench-air node connected via USB serial:
+
+```bash
+# Terminal 3: Serial bridge (reads sensor JSON, posts to ingest)
+python3 -m oesis.ingest.serial_bridge \
+  --serial-port /dev/cu.usbmodem101 \
+  --parcel-id parcel_demo_001 \
+  --ingest-url http://127.0.0.1:8787
+```
+
+### Verify it works
+
+```bash
+# Offline: run all acceptance tests
+make oesis-accept && make oesis-v02-accept && make oesis-v03-accept && \
+make oesis-v04-accept && make oesis-v05-accept && make oesis-v10-accept
+
+# HTTP: start services and run smoke test
+make oesis-http-check
+```
+
+### What's not here yet
+
+- No Docker / container images
+- No systemd / supervisor configs
+- No TLS termination (use a reverse proxy for production)
+- No ingest authorization (any client can post packets)
+- No live public data feeds (inference uses fixture data for public context)
+
+These are tracked as Tier B gaps in the [execution plan](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/program/execution-plan.md).
 
 ## License
 

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import uuid
-from copy import deepcopy
 from datetime import datetime, timezone
 
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload

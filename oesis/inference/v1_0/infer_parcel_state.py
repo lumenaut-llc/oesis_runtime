@@ -73,7 +73,7 @@ def validate_normalized_observation(payload: dict):
         if field not in payload:
             raise InferenceError(f"normalized observation missing required field: {field}")
 
-    supported_types = {"air.node.snapshot", "equipment.circuit.snapshot"}
+    supported_types = {"air.node.snapshot", "equipment.circuit.snapshot", "air.pm.snapshot", "flood.low_point.snapshot"}
     if payload["observation_type"] not in supported_types:
         raise InferenceError(f"observation_type must be one of {sorted(supported_types)}")
 
@@ -694,6 +694,12 @@ def derive_hazards(
     )
     smoke_probability = max(smoke_probability, indoor_smoke_probability)
 
+    outdoor_pm25 = values.get("pm25_ugm3")
+    if outdoor_pm25 is not None:
+        outdoor_smoke_prob = probability_from_gte_bands(
+            outdoor_pm25, smoke_config.get("outdoor_pm25_bands", []), smoke_probability)
+        smoke_probability = max(smoke_probability, outdoor_smoke_prob)
+
     heat_probability = heat_config["base_probability"]
     temperature_c = values.get("temperature_c_primary")
     heat_probability = probability_from_gte_bands(
@@ -719,7 +725,23 @@ def derive_hazards(
         if verification_outcome.get("result_class") == "worsened":
             smoke_probability += 0.03
 
-    flood_probability = 0.0
+    flood_config = _hazard_thresholds().get("flood", {})
+    flood_probability = flood_config.get("base_probability", 0.0)
+
+    water_depth_cm = values.get("water_depth_cm")
+    if water_depth_cm is not None:
+        flood_probability = probability_from_gte_bands(
+            water_depth_cm, flood_config.get("water_depth_bands", []), flood_probability)
+
+    rise_rate = values.get("rise_rate_cm_per_hr")
+    if rise_rate is not None:
+        rise_prob = probability_from_gte_bands(
+            rise_rate, flood_config.get("rise_rate_bands", []), 0.0)
+        flood_probability = max(flood_probability, rise_prob)
+
+    calibration_state = values.get("calibration_state")
+    if calibration_state == "provisional":
+        flood_probability -= flood_config.get("provisional_calibration_penalty", 0.06)
 
     if not health.get("wifi_connected", False):
         smoke_probability -= sensor_penalties["wifi_disconnected"]
@@ -782,6 +804,8 @@ def derive_confidence(
 
     if max(hazards.values()) < 0.2:
         confidence -= 0.08
+    if payload.get("observation_type") == "flood.low_point.snapshot":
+        confidence += 0.04
     if house_state is not None:
         confidence += 0.08
     if house_capability is not None:
@@ -963,6 +987,66 @@ def build_evidence_contributions(
                 summary=summary,
                 hazards=["heat"],
                 weight=weight,
+            )
+        )
+
+    outdoor_pm25 = payload["values"].get("pm25_ugm3")
+    if outdoor_pm25 is not None:
+        if outdoor_pm25 >= 35:
+            summary = "Outdoor PM2.5 is elevated at the node location, supporting smoke concern."
+            weight = 0.52
+        elif outdoor_pm25 >= 12:
+            summary = "Outdoor PM2.5 is modestly elevated at the node location."
+            weight = 0.28
+        else:
+            summary = "Outdoor PM2.5 does not currently suggest elevated smoke concern."
+            weight = 0.1
+        contributions.append(
+            make_evidence_contribution(
+                contribution_id="outdoor_pm25_trend",
+                source_class="local",
+                source_name=payload["node_id"],
+                role="driver",
+                summary=summary,
+                hazards=["smoke"],
+                weight=weight,
+            )
+        )
+
+    water_depth_cm = payload["values"].get("water_depth_cm")
+    if water_depth_cm is not None:
+        if water_depth_cm >= 8:
+            summary = "Local water depth is significant and supports flood concern."
+            weight = 0.56
+        elif water_depth_cm >= 3:
+            summary = "Local water depth is modestly elevated at the low-point sensor."
+            weight = 0.34
+        else:
+            summary = "Local water depth is minimal and does not currently suggest flood concern."
+            weight = 0.1
+        contributions.append(
+            make_evidence_contribution(
+                contribution_id="local_water_depth",
+                source_class="local",
+                source_name=payload["node_id"],
+                role="driver",
+                summary=summary,
+                hazards=["flood"],
+                weight=weight,
+            )
+        )
+
+    rise_rate = payload["values"].get("rise_rate_cm_per_hr")
+    if rise_rate is not None and rise_rate > 0.5:
+        contributions.append(
+            make_evidence_contribution(
+                contribution_id="local_rise_rate",
+                source_class="local",
+                source_name=payload["node_id"],
+                role="driver",
+                summary=f"Water rise rate is {rise_rate:.1f} cm/hr, indicating active water level change.",
+                hazards=["flood"],
+                weight=min(0.58, rise_rate * 0.08 + 0.1),
             )
         )
 

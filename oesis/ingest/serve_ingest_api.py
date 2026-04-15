@@ -162,10 +162,8 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 {
                     "schemas": [
-                        {
-                            "schema_version": "oesis.bench-air.v1",
-                            "status": "active",
-                        }
+                        {"schema_version": s, "status": "active"}
+                        for s in SUPPORTED_SCHEMAS
                     ],
                     "versioning": versioning_payload(lane=runtime_lane),
                 },

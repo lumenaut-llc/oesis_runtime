@@ -2,37 +2,16 @@
   "smoke": {
     "base_probability": 0.08,
     "gas_resistance_bands": [
-      {
-        "lt": 50000,
-        "probability": 0.24
-      },
-      {
-        "lt": 100000,
-        "probability": 0.18
-      },
-      {
-        "lt": 180000,
-        "probability": 0.12
-      }
+      {"lt": 50000, "probability": 0.24},
+      {"lt": 100000, "probability": 0.18},
+      {"lt": 180000, "probability": 0.12}
     ],
     "default_probability": 0.08,
     "indoor_pm25_bands": [
-      {
-        "gte": 55,
-        "probability": 0.78
-      },
-      {
-        "gte": 35,
-        "probability": 0.62
-      },
-      {
-        "gte": 20,
-        "probability": 0.42
-      },
-      {
-        "gte": 12,
-        "probability": 0.24
-      }
+      {"gte": 55, "probability": 0.78},
+      {"gte": 35, "probability": 0.62},
+      {"gte": 20, "probability": 0.42},
+      {"gte": 12, "probability": 0.24}
     ],
     "verification_window_min_minutes": 30,
     "verification_window_max_minutes": 90,
@@ -48,30 +27,15 @@
   "heat": {
     "base_probability": 0.08,
     "temperature_bands": [
-      {
-        "gte": 40,
-        "probability": 0.68
-      },
-      {
-        "gte": 34,
-        "probability": 0.5
-      },
-      {
-        "gte": 29,
-        "probability": 0.3
-      },
-      {
-        "gte": 24,
-        "probability": 0.16
-      }
+      {"gte": 40, "probability": 0.68},
+      {"gte": 34, "probability": 0.5},
+      {"gte": 29, "probability": 0.3},
+      {"gte": 24, "probability": 0.16}
     ],
     "indoor_penalty": 0.06,
     "sheltered_penalty": 0.03
   },
-  "sensor_penalties": {
-    "wifi_disconnected": 0.01,
-    "read_failures": 0.05
-  },
+  "sensor_penalties": {"wifi_disconnected": 0.01, "read_failures": 0.05},
   "status_mapping": {
     "default_unknown_floor": 0.2,
     "heat_unknown_floor": 0.25,

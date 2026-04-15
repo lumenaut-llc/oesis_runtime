@@ -1,0 +1,35 @@
+{
+  "high_confidence_requires_concordant_sensors": 2,
+  "persistence_classes": [
+    {"max_minutes": 14, "label": "transient"},
+    {"max_minutes": 60, "label": "short_term"},
+    {"max_minutes": 180, "label": "sustained"},
+    {"max_minutes": 720, "label": "persistent"},
+    {"label": "chronic"}
+  ],
+  "parameters": {
+    "pm25": {
+      "regional_sigma": 8.0,
+      "verification_window_minutes": 240,
+      "magnitude_thresholds": {"noise_max": 5.0, "low_max": 12.0, "moderate_max": 35.0, "high_max": 55.0},
+      "aqi_breakpoints": [
+        {"max": 9.0, "label": "good"},
+        {"max": 35.4, "label": "moderate"},
+        {"max": 55.4, "label": "usg"},
+        {"max": 125.4, "label": "unhealthy"},
+        {"max": 225.4, "label": "very_unhealthy"},
+        {"label": "hazardous"}
+      ],
+      "barkjohn_2021": {"slope": 0.524, "rh_coeff": -0.0862, "intercept": 5.75, "high_range_transition_ugm3": 300.0}
+    },
+    "temperature_c": {
+      "regional_sigma": 2.2,
+      "verification_window_minutes": 360,
+      "magnitude_thresholds": {"noise_max": 1.1, "low_max": 2.8, "moderate_max": 4.4, "high_max": 6.8}
+    },
+    "flood_stage": {
+      "verification_window_minutes": 720,
+      "category_rank": {"none": 0, "action": 1, "minor": 2, "moderate": 3, "major": 4}
+    }
+  }
+}

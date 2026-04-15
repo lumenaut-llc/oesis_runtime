@@ -1,0 +1,16 @@
+{
+  "confidence_gate": {
+    "low_confidence_threshold": 0.45,
+    "weight": 0.68
+  },
+  "freshness_gate": {
+    "stale_weight": 0.76
+  },
+  "cross_source_disagreement": {
+    "smoke_local_steady_min_gas_resistance_ohm": 180000,
+    "smoke_external_support_threshold": 0.3,
+    "heat_local_cool_max_temp_c": 24,
+    "heat_external_support_threshold": 0.3,
+    "weight": 0.5
+  }
+}

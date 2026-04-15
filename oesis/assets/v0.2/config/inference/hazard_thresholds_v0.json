@@ -39,10 +39,22 @@
     "improvement_absolute_min_ugm3": 5.0,
     "improvement_ratio_min": 0.2,
     "outdoor_pm25_bands": [
-      {"gte": 55, "probability": 0.72},
-      {"gte": 35, "probability": 0.56},
-      {"gte": 20, "probability": 0.36},
-      {"gte": 12, "probability": 0.18}
+      {
+        "gte": 55,
+        "probability": 0.72
+      },
+      {
+        "gte": 35,
+        "probability": 0.56
+      },
+      {
+        "gte": 20,
+        "probability": 0.36
+      },
+      {
+        "gte": 12,
+        "probability": 0.18
+      }
     ]
   },
   "heat": {
@@ -92,15 +104,36 @@
   "flood": {
     "base_probability": 0.0,
     "water_depth_bands": [
-      {"gte": 15, "probability": 0.78},
-      {"gte": 8, "probability": 0.52},
-      {"gte": 3, "probability": 0.28},
-      {"gte": 0.5, "probability": 0.12}
+      {
+        "gte": 15,
+        "probability": 0.78
+      },
+      {
+        "gte": 8,
+        "probability": 0.52
+      },
+      {
+        "gte": 3,
+        "probability": 0.28
+      },
+      {
+        "gte": 0.5,
+        "probability": 0.12
+      }
     ],
     "rise_rate_bands": [
-      {"gte": 5.0, "probability": 0.68},
-      {"gte": 2.0, "probability": 0.42},
-      {"gte": 0.5, "probability": 0.18}
+      {
+        "gte": 5.0,
+        "probability": 0.68
+      },
+      {
+        "gte": 2.0,
+        "probability": 0.42
+      },
+      {
+        "gte": 0.5,
+        "probability": 0.18
+      }
     ],
     "default_probability": 0.0,
     "provisional_calibration_penalty": 0.06

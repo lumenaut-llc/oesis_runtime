@@ -1,0 +1,40 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:22:00Z",
+  "records": [
+    {
+      "signal_key": "hvac_mode",
+      "value_type": "string",
+      "string_value": "recirculate",
+      "confidence_band": "high",
+      "source_kind": "adapter_derived",
+      "source_name": "ct_clamp_hvac_adapter",
+      "method": "current_and_power_signature",
+      "observed_at": "2026-04-14T19:21:50Z",
+      "ttl_seconds": 30,
+      "stale": false,
+      "used_for": [
+        "house_state_projection",
+        "intervention_context",
+        "verification_context"
+      ],
+      "raw_ref": "obs_hvac_ct_0007"
+    },
+    {
+      "signal_key": "outdoor_air_intake",
+      "value_type": "boolean",
+      "boolean_value": false,
+      "confidence_band": "low",
+      "source_kind": "inferred",
+      "source_name": "thermal_inference_fallback",
+      "method": "slope_deadband_classification",
+      "observed_at": "2026-04-14T19:21:40Z",
+      "ttl_seconds": 300,
+      "stale": false,
+      "used_for": [
+        "hazard_reasoning",
+        "verification_context"
+      ]
+    }
+  ]
+}

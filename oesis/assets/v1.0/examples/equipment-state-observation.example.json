@@ -1,0 +1,22 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:22:00Z",
+  "confidence_band": "medium",
+  "fusion_hint": "prefer_adapter",
+  "source": {
+    "source_kind": "adapter_derived",
+    "source_name": "ecobee_adapter",
+    "method": "cloud_runtime_poll",
+    "ttl_seconds": 300,
+    "raw_ref": "ecobee_runtime_packet_7781"
+  },
+  "signals": {
+    "hvac_mode": "cool",
+    "fan_state": "auto",
+    "air_source_mode": "recirculate",
+    "purifier_state": "off",
+    "outdoor_air_intake": false,
+    "equipment_running": true,
+    "setpoint_f": 74.0
+  }
+}

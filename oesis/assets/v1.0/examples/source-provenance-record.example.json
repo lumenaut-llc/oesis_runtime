@@ -1,0 +1,33 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:22:00Z",
+  "records": [
+    {
+      "signal_key": "hvac_mode",
+      "value_type": "string",
+      "string_value": "cool",
+      "confidence_band": "medium",
+      "source_kind": "adapter_derived",
+      "source_name": "ecobee_adapter",
+      "method": "cloud_runtime_poll",
+      "observed_at": "2026-04-14T19:21:30Z",
+      "ttl_seconds": 300,
+      "stale": false,
+      "used_inference_stage": "bridge",
+      "raw_ref": "ecobee_runtime_packet_7781"
+    },
+    {
+      "signal_key": "sump_state",
+      "value_type": "string",
+      "string_value": "unknown",
+      "confidence_band": "none",
+      "source_kind": "manual_entry",
+      "source_name": "operator_capture",
+      "method": "manual_form_entry",
+      "observed_at": "2026-04-14T19:21:50Z",
+      "ttl_seconds": 900,
+      "stale": false,
+      "used_inference_stage": "bridge"
+    }
+  ]
+}

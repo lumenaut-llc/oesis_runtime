@@ -1,0 +1,17 @@
+{
+  "signal_id": "nas_20260413_batch01_parcel_ref_001",
+  "parcel_ref": "parcel_ref_parcel_001",
+  "generated_at": "2026-04-13T04:00:00Z",
+  "batch_id": "nightly_20260413",
+  "consent_verified": true,
+  "hazard_bands": {
+    "smoke_band": "medium",
+    "flood_band": "low",
+    "heat_band": "low"
+  },
+  "evidence_mode": "live",
+  "confidence_band": "medium",
+  "node_families": ["bench_air", "weather_pm_mast"],
+  "installation_context": "sheltered_outdoor",
+  "siting_limitations": ["north_facing_only"]
+}

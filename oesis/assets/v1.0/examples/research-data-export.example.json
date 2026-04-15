@@ -1,0 +1,45 @@
+{
+  "export_id": "rde_pilot_smoke_2026q2_ps2026q2_anon_0047",
+  "research_program_id": "pilot_smoke_response_2026q2",
+  "program_parcel_id": "ps2026q2_anon_0047",
+  "generated_at": "2026-04-13T06:00:00Z",
+  "consent_verified": true,
+  "retention_expires_at": "2026-10-13T06:00:00Z",
+  "publication_allowed": false,
+  "anonymization_level": "parcel_ref_only",
+  "payload_schema_version": "pilot_smoke_response_2026q2.v1",
+  "data_payload": {
+    "extracted_fields": [
+      "outdoor_pm25_hourly",
+      "smoke_band",
+      "evidence_mode",
+      "node_families"
+    ],
+    "extraction_window": {
+      "from": "2026-04-01T00:00:00Z",
+      "to": "2026-04-12T23:59:59Z"
+    },
+    "source_contract_version": "v0.1",
+    "hourly_pm25_summary": [
+      {
+        "hour": "2026-04-10T14:00:00Z",
+        "pm25_mean": 38.2,
+        "pm25_max": 52.1,
+        "smoke_band": "medium",
+        "evidence_mode": "live"
+      },
+      {
+        "hour": "2026-04-10T15:00:00Z",
+        "pm25_mean": 45.7,
+        "pm25_max": 61.3,
+        "smoke_band": "high",
+        "evidence_mode": "live"
+      }
+    ]
+  },
+  "audit_trail": {
+    "program_operator": "lumenaut_pilot_ops",
+    "access_logged": true,
+    "export_timestamp": "2026-04-13T06:01:12Z"
+  }
+}

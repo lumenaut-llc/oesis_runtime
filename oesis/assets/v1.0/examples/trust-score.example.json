@@ -1,0 +1,51 @@
+{
+  "parcel_id": "parcel_123",
+  "scored_at": "2026-04-14T15:30:00Z",
+  "overall_band": "medium",
+  "overall_score": 0.68,
+  "factors": [
+    {
+      "factor_key": "freshness",
+      "weight": 0.30,
+      "score": 0.70,
+      "band": "medium",
+      "reason": "Public smoke context is aging (1h 12m); local node fresh (4m)"
+    },
+    {
+      "factor_key": "node_health",
+      "weight": 0.25,
+      "score": 1.00,
+      "band": "high",
+      "reason": "bench-air-01: all health indicators nominal"
+    },
+    {
+      "factor_key": "calibration_state",
+      "weight": 0.20,
+      "score": 0.60,
+      "band": "medium",
+      "reason": "bench-air-01: provisional calibration (awaiting field verification)"
+    },
+    {
+      "factor_key": "install_quality",
+      "weight": 0.10,
+      "score": 0.50,
+      "band": "medium",
+      "reason": "No deployment metadata available; neutral score applied"
+    },
+    {
+      "factor_key": "source_diversity",
+      "weight": 0.15,
+      "score": 0.80,
+      "band": "high",
+      "reason": "Local node and public context both contributing"
+    }
+  ],
+  "penalty_log": [
+    {
+      "factor_key": "freshness",
+      "penalty": 0.30,
+      "reason": "Regional smoke context aging beyond 1 hour",
+      "applied_at": "2026-04-14T15:30:00Z"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:20:00Z",
+  "indoor_response": {
+    "pm25_ugm3": 18.2,
+    "temperature_c": 27.1,
+    "relative_humidity_pct": 43.0,
+    "infiltration": {
+      "io_ratio": 0.26,
+      "baseline_io_ratio": 0.31,
+      "baseline_io_p25": 0.24,
+      "baseline_io_p75": 0.38,
+      "envelope_class": "average",
+      "baseline_sample_count": 412,
+      "baseline_last_updated": "2026-04-13T06:00:00Z"
+    },
+    "thermal_dynamics": {
+      "indoor_rise_rate_f_per_hour": 1.8,
+      "rise_rate_r2": 0.91,
+      "time_to_threshold_hours": 3.4,
+      "threshold_f": 88.0,
+      "confidence_interval_low_hours": 2.6,
+      "confidence_interval_high_hours": 4.9,
+      "recommendation": "pre_cool_recommended"
+    }
+  },
+  "power_state": {
+    "mains_state": "up",
+    "backup_power_present": true,
+    "backup_power_active": false
+  },
+  "source_summary": {
+    "node_ids": ["indoor-response-01"],
+    "source_kind": "private_support_object"
+  }
+}

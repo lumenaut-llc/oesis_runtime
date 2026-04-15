@@ -30,4 +30,5 @@ oesis = [
     "assets/v0.4/examples/*.json", "assets/v0.4/config/inference/*.json",
     "assets/v0.5/examples/*.json", "assets/v0.5/config/inference/*.json",
     "assets/v1.0/examples/*.json", "assets/v1.0/config/inference/*.json",
+    "assets/v1.5/examples/*.json", "assets/v1.5/config/inference/*.json",
 ]

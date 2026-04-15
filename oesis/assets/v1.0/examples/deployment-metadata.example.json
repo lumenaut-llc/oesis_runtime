@@ -1,0 +1,37 @@
+{
+  "parcel_id": "parcel_123",
+  "node_id": "bench-air-01",
+  "install_record_id": "install_20260405_001",
+  "installed_at": "2026-04-05T18:00:00Z",
+  "installed_by": "operator_pilot_lead",
+  "install_status": "field_validated",
+  "mount": {
+    "mount_type": "shelf_placed",
+    "mount_height_m": 1.2,
+    "orientation_class": "living_area",
+    "field_marker_present": false
+  },
+  "exposure": {
+    "sun_exposure_class": "none",
+    "airflow_exposure_class": "moderate",
+    "splash_exposure_class": "none",
+    "proximity_to_sources": []
+  },
+  "enclosure": {
+    "enclosure_revision": "bench-air-enclosure-r2"
+  },
+  "power": {
+    "power_source_type": "usb_c_mains",
+    "power_reliability_class": "continuous"
+  },
+  "storage": {
+    "storage_type": "micro_sd",
+    "storage_capacity_gb": 32
+  },
+  "maintenance": {
+    "maintenance_status": "current",
+    "last_maintenance_at": "2026-04-05T18:00:00Z",
+    "maintenance_interval_days": 90,
+    "maintenance_notes": "Initial installation; sensor verified against reference instrument"
+  }
+}

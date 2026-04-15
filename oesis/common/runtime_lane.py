@@ -7,6 +7,7 @@ Supported lanes:
 - ``v0.4`` — multi-node registry + evidence composition
 - ``v0.5`` — governance enforcement (consent, retention, export, revocation)
 - ``v1.0`` — full runtime (additive future)
+- ``v1.5`` — bridge support objects (house state, intervention, verification)
 
 New lanes are discovered automatically from asset directories matching
 ``oesis/assets/vX.Y/``.

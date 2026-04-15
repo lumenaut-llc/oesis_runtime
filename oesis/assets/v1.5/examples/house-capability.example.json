@@ -1,0 +1,18 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "effective_at": "2026-04-14T19:25:00Z",
+  "capabilities": {
+    "recirculation_available": true,
+    "portable_purifier_present": true,
+    "backup_power_present": true,
+    "motorized_shades_present": false,
+    "pump_or_sump_present": false,
+    "higher_merv_supported": "unknown"
+  },
+  "equipment_state": {
+    "hvac_mode": "cool",
+    "fan_state": "auto",
+    "air_source_mode": "recirculate",
+    "purifier_state": "off"
+  }
+}

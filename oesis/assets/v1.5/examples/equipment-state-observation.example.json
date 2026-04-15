@@ -1,0 +1,23 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "captured_at": "2026-04-14T19:22:00Z",
+  "confidence_band": "high",
+  "bridge_role": "both",
+  "source": {
+    "source_kind": "adapter_derived",
+    "source_name": "ct_clamp_hvac_adapter",
+    "method": "modbus_current_threshold",
+    "ttl_seconds": 30,
+    "raw_ref": "obs_hvac_ct_0007"
+  },
+  "signals": {
+    "hvac_mode": "recirculate",
+    "fan_state": "on",
+    "air_source_mode": "recirculate",
+    "purifier_state": "on",
+    "sump_state": "standby",
+    "outdoor_air_intake": false,
+    "equipment_running": true,
+    "setpoint_f": 73.0
+  }
+}

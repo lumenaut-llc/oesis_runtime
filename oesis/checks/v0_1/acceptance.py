@@ -85,6 +85,53 @@ def verify_runtime_flow_artifacts(payload: dict) -> None:
         raise SystemExit(f"parcel_view lane mismatch: expected {expected_lane}, got {parcel_view_lane}")
 
 
+def verify_value_assertions(payload: dict) -> None:
+    """Assert inference values are in valid ranges (beyond structural checks)."""
+    ps = payload["parcel_state"]
+
+    # Confidence must be in [0, 1]
+    conf = ps.get("confidence")
+    if conf is None or not 0.0 <= conf <= 1.0:
+        raise SystemExit(f"v0.1 confidence out of range: {conf}")
+
+    # Status enums must be valid
+    valid_statuses = {"safe", "watch", "warning", "danger", "unknown", "not_assessed"}
+    for status_key in ("shelter_status", "reentry_status", "egress_status", "asset_risk_status"):
+        val = ps.get(status_key)
+        if val not in valid_statuses:
+            raise SystemExit(f"v0.1 {status_key} has invalid value: {val}")
+
+    # Evidence mode must be valid
+    valid_modes = {"local_only", "local_plus_public", "public_only", "local_plus_shared",
+                   "local_plus_public_plus_shared", "degraded"}
+    if ps.get("evidence_mode") not in valid_modes:
+        raise SystemExit(f"v0.1 evidence_mode invalid: {ps.get('evidence_mode')}")
+
+    # Hazard probabilities in [0, 1]
+    hazards = ps.get("hazards", {})
+    for haz_key, haz_val in hazards.items():
+        if isinstance(haz_val, dict):
+            prob = haz_val.get("probability")
+            if prob is not None and not 0.0 <= prob <= 1.0:
+                raise SystemExit(f"v0.1 hazard {haz_key} probability out of range: {prob}")
+
+    # Hazard statuses must be valid
+    for haz_name, haz_status in ps.get("hazard_statuses", {}).items():
+        if haz_status not in valid_statuses:
+            raise SystemExit(f"v0.1 hazard_statuses.{haz_name} invalid: {haz_status}")
+
+    # Freshness seconds must be non-negative
+    freshness = ps.get("freshness", {})
+    secs = freshness.get("seconds_since_latest")
+    if secs is not None and secs < 0:
+        raise SystemExit(f"v0.1 freshness seconds_since_latest negative: {secs}")
+
+    # Provenance summary must have at least one source mode
+    prov = ps.get("provenance_summary", {})
+    if not prov.get("source_modes"):
+        raise SystemExit("v0.1 provenance_summary missing source_modes")
+
+
 def verify_http_flow_artifacts(*, ingest_health: dict, inference_health: dict, parcel_health: dict, ingest_payload: dict, inference_payload: dict, parcel_payload: dict) -> None:
     assert ingest_health["ok"] is True
     assert inference_health["ok"] is True

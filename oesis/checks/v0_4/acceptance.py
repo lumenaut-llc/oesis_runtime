@@ -207,9 +207,45 @@ def verify_http_flow_artifacts(*, ingest_health: dict, inference_health: dict, p
         raise SystemExit("parcel_view missing versioning")
 
 
+def verify_value_assertions(payload: dict) -> None:
+    """Assert v0.4 inference values and registry binding are valid."""
+    ps = payload["parcel_state"]
+
+    # Confidence in [0, 1]
+    conf = ps.get("confidence")
+    if conf is None or not 0.0 <= conf <= 1.0:
+        raise SystemExit(f"v0.4 confidence out of range: {conf}")
+
+    # Status enums
+    valid_statuses = {"safe", "watch", "warning", "danger", "unknown", "not_assessed"}
+    for status_key in ("shelter_status", "reentry_status", "egress_status", "asset_risk_status"):
+        val = ps.get(status_key)
+        if val not in valid_statuses:
+            raise SystemExit(f"v0.4 {status_key} invalid: {val}")
+
+    # Multi-node evidence contributions must have valid weights
+    evidence = payload.get("multi_node_evidence", {})
+    contributions = evidence.get("contributions", [])
+    if contributions:
+        for contrib in contributions:
+            weight = contrib.get("weight")
+            if weight is not None and not 0.0 <= weight <= 1.0:
+                raise SystemExit(f"v0.4 evidence contribution weight out of range: {weight}")
+
+    # Registry-bound observations should carry calibration_state
+    normalized = payload["normalized_observation"]
+    reg_meta = normalized.get("provenance", {}).get("registry_metadata", {})
+    if reg_meta:
+        cal = reg_meta.get("calibration_state")
+        valid_cal = {"verified", "recently_calibrated", "provisional", "needs_service", "unsupported"}
+        if cal is not None and cal not in valid_cal:
+            raise SystemExit(f"v0.4 calibration_state invalid: {cal}")
+
+
 def main() -> None:
     payload = build_v04_runtime_flow()
     verify_runtime_flow_artifacts(payload)
+    verify_value_assertions(payload)
     expected_lane = "v0.4"
     active_lane = resolve_runtime_lane()
     if active_lane != expected_lane:

@@ -158,9 +158,42 @@ def verify_http_flow_artifacts(*, ingest_health: dict, inference_health: dict, p
         raise SystemExit("parcel_view missing versioning")
 
 
+def verify_value_assertions(payload: dict) -> None:
+    """Assert v0.3 inference values are in valid ranges including flood."""
+    ps = payload["parcel_state"]
+
+    # Confidence in [0, 1]
+    conf = ps.get("confidence")
+    if conf is None or not 0.0 <= conf <= 1.0:
+        raise SystemExit(f"v0.3 confidence out of range: {conf}")
+
+    # Status enums
+    valid_statuses = {"safe", "watch", "warning", "danger", "unknown", "not_assessed"}
+    for status_key in ("shelter_status", "reentry_status", "egress_status", "asset_risk_status"):
+        val = ps.get(status_key)
+        if val not in valid_statuses:
+            raise SystemExit(f"v0.3 {status_key} invalid: {val}")
+
+    # Hazard statuses including flood
+    for haz_name, haz_status in ps.get("hazard_statuses", {}).items():
+        if haz_status not in valid_statuses:
+            raise SystemExit(f"v0.3 hazard_statuses.{haz_name} invalid: {haz_status}")
+
+    # Flood normalized values must be physically reasonable
+    if "flood_normalized" in payload:
+        fv = payload["flood_normalized"]["values"]
+        depth = fv.get("water_depth_cm")
+        if depth is not None and depth < 0:
+            raise SystemExit(f"v0.3 flood water_depth_cm negative: {depth}")
+        dist = fv.get("distance_cm")
+        if dist is not None and dist < 0:
+            raise SystemExit(f"v0.3 flood distance_cm negative: {dist}")
+
+
 def main() -> None:
     payload = build_v03_runtime_flow()
     verify_runtime_flow_artifacts(payload)
+    verify_value_assertions(payload)
     expected_lane = "v0.3"
     active_lane = resolve_runtime_lane()
     if active_lane != expected_lane:

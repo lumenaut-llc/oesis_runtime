@@ -155,9 +155,44 @@ def verify_http_flow_artifacts(*, ingest_health: dict, inference_health: dict, p
         raise SystemExit("parcel_view missing versioning")
 
 
+def verify_value_assertions(payload: dict) -> None:
+    """Assert v0.2 inference values are in valid ranges."""
+    ps = payload["parcel_state"]
+
+    # Confidence in [0, 1]
+    conf = ps.get("confidence")
+    if conf is None or not 0.0 <= conf <= 1.0:
+        raise SystemExit(f"v0.2 confidence out of range: {conf}")
+
+    # Status enums
+    valid_statuses = {"safe", "watch", "warning", "danger", "unknown", "not_assessed"}
+    for status_key in ("shelter_status", "reentry_status", "egress_status", "asset_risk_status"):
+        val = ps.get(status_key)
+        if val not in valid_statuses:
+            raise SystemExit(f"v0.2 {status_key} invalid: {val}")
+
+    # Evidence mode
+    valid_modes = {"local_only", "local_plus_public", "public_only", "local_plus_shared",
+                   "local_plus_public_plus_shared", "degraded"}
+    if ps.get("evidence_mode") not in valid_modes:
+        raise SystemExit(f"v0.2 evidence_mode invalid: {ps.get('evidence_mode')}")
+
+    # Two-node kit should have evidence from multiple sources
+    prov = ps.get("provenance_summary", {})
+    if not prov.get("source_modes"):
+        raise SystemExit("v0.2 provenance_summary missing source_modes")
+
+    # Mast-lite inference should also have valid confidence
+    if "mast_lite_parcel_state" in payload:
+        mast_conf = payload["mast_lite_parcel_state"].get("confidence")
+        if mast_conf is None or not 0.0 <= mast_conf <= 1.0:
+            raise SystemExit(f"v0.2 mast-lite confidence out of range: {mast_conf}")
+
+
 def main() -> None:
     payload = build_v02_runtime_flow()
     verify_runtime_flow_artifacts(payload)
+    verify_value_assertions(payload)
     expected_lane = "v0.2"
     active_lane = resolve_runtime_lane()
     if active_lane != expected_lane:

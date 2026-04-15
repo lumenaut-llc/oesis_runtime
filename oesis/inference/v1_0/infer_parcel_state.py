@@ -11,6 +11,7 @@ from pathlib import Path
 
 from oesis.common.repo_paths import EXAMPLES_DIR, INFERENCE_CONFIG_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload
+from .compute_trust_score import compute_trust_score
 from .parcel_first_hazard import (
     apply_public_and_shared_support,
     build_contrastive_explanations,
@@ -1878,6 +1879,15 @@ def infer_parcel_state(
         public_context=public_context,
     )
 
+    trust_score = compute_trust_score(
+        payload,
+        now=now,
+        parcel_context=parcel_context,
+        source_provenance_record=source_provenance_record,
+        public_context=public_context,
+        shared_context=shared_context,
+    )
+
     source_modes = [payload["provenance"]["source_kind"]]
     if shared_context:
         source_modes.append(shared_context["source_kind"])
@@ -1934,6 +1944,7 @@ def infer_parcel_state(
             ],
             "support_object_refs": support_objects_present,
         },
+        "trust_score": trust_score,
     }
 
 

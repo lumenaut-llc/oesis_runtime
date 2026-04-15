@@ -7,7 +7,7 @@ name = "oesis-runtime"
 version = "0.1.0"
 description = "Reference runtime services for Open Environmental Sensing and Inference System."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
 

@@ -54,6 +54,7 @@ sensor packet ──► ingest ──► normalized observation
 | `make oesis-v03-accept` | Offline acceptance for v0.3 (flood-capable). |
 | `make oesis-v04-accept` | Offline acceptance for v0.4 (multi-node registry). |
 | `make oesis-v05-accept` | Offline acceptance for v0.5 (governance enforcement). |
+| `make oesis-v10-validate` | Validate v1.0 example payloads against schemas. |
 | `make oesis-v10-accept` | Offline acceptance for v1.0 (extended support objects + trust scoring). |
 | `make oesis-http-check` | Start local HTTP services and verify the full round-trip. |
 

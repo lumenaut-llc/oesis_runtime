@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help oesis-demo oesis-validate oesis-accept oesis-check oesis-http-check oesis-v02-accept oesis-v02-check oesis-v02-http-check oesis-v03-accept oesis-v03-check oesis-v03-http-check oesis-v04-accept oesis-v04-check oesis-v04-http-check oesis-v05-accept oesis-v05-check oesis-v05-http-check oesis-v10-accept oesis-v10-check oesis-v10-http-check
+.PHONY: help oesis-demo oesis-validate oesis-accept oesis-check oesis-http-check oesis-v02-accept oesis-v02-check oesis-v02-http-check oesis-v03-accept oesis-v03-check oesis-v03-http-check oesis-v04-accept oesis-v04-check oesis-v04-http-check oesis-v05-accept oesis-v05-check oesis-v05-http-check oesis-v10-validate oesis-v10-accept oesis-v10-check oesis-v10-http-check
 
 help: ## Show available targets
 	@echo "Usage: make <target>"
@@ -69,6 +69,9 @@ oesis-v05-check:
 
 oesis-v05-http-check:
 	./scripts/oesis_v05_http_smoke_check.sh
+
+oesis-v10-validate:
+	./scripts/oesis_v10_validate.sh
 
 oesis-v10-accept:
 	./scripts/oesis_v10_accept.sh

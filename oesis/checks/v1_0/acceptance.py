@@ -10,6 +10,7 @@ from pathlib import Path
 from oesis.common.repo_paths import EXAMPLES_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane
 from oesis.context.v1_0.loader import load_default_bundle
+from oesis.ingest.v1_0.normalize_flood_packet import normalize_flood_packet
 from oesis.ingest.v1_0.normalize_packet import normalize_packet
 from oesis.ingest.v1_0.normalize_public_smoke_context import normalize_public_smoke_context
 from oesis.ingest.v1_0.normalize_public_weather_context import normalize_public_weather_context
@@ -46,7 +47,7 @@ def build_v10_runtime_flow(*, computed_at: str = "2026-03-30T19:46:00Z") -> dict
     )
     parcel_view = build_parcel_view(parcel_state)
     evidence_summary = build_evidence_summary(parcel_state)
-    return {
+    result = {
         "node_packet": bundle["node_packet"],
         "parcel_context": bundle["parcel_context"],
         "house_state": bundle["house_state"],
@@ -64,6 +65,32 @@ def build_v10_runtime_flow(*, computed_at: str = "2026-03-30T19:46:00Z") -> dict
         "parcel_view": parcel_view,
         "evidence_summary": evidence_summary,
     }
+
+    # Mast-lite (sheltered outdoor) — uses shared bench-air normalizer
+    if "mast_lite_packet" in bundle:
+        mast_lite_normalized = normalize_packet(
+            bundle["mast_lite_packet"], parcel_id=bundle["parcel_id"], runtime_lane="v1.0"
+        )
+        mast_lite_parcel_state = infer_parcel_state(
+            mast_lite_normalized,
+            computed_at=computed_at,
+            runtime_lane="v1.0",
+            parcel_context=bundle["parcel_context"],
+            public_context=public_context,
+        )
+        result["mast_lite_packet"] = bundle["mast_lite_packet"]
+        result["mast_lite_normalized"] = mast_lite_normalized
+        result["mast_lite_parcel_state"] = mast_lite_parcel_state
+
+    # Flood node — uses dedicated flood normalizer
+    if "flood_packet" in bundle:
+        flood_normalized = normalize_flood_packet(
+            bundle["flood_packet"], parcel_id=bundle["parcel_id"], runtime_lane="v1.0"
+        )
+        result["flood_packet"] = bundle["flood_packet"]
+        result["flood_normalized"] = flood_normalized
+
+    return result
 
 
 def verify_governance_runtime_behavior() -> None:
@@ -218,6 +245,25 @@ def main() -> None:
     verify_runtime_flow_artifacts(payload)
     verify_trust_score(payload)
     verify_value_assertions(payload)
+    # Mast-lite assertions
+    if "mast_lite_normalized" not in payload:
+        raise SystemExit("v1.0 acceptance: mast_lite_normalized missing from flow")
+    if payload["mast_lite_normalized"]["node_id"] != "mast-lite-01":
+        raise SystemExit("mast_lite_normalized node_id mismatch")
+    if "mast_lite_parcel_state" not in payload:
+        raise SystemExit("v1.0 acceptance: mast_lite_parcel_state missing from flow")
+
+    # Flood assertions
+    if "flood_normalized" not in payload:
+        raise SystemExit("v1.0 acceptance: flood_normalized missing from flow")
+    if payload["flood_normalized"].get("observation_type") != "flood.low_point.snapshot":
+        raise SystemExit(f"flood observation_type mismatch: {payload['flood_normalized'].get('observation_type')}")
+    flood_values = payload["flood_normalized"].get("values", {})
+    for flood_key in ("water_depth_cm", "distance_cm", "dry_reference_distance_cm"):
+        val = flood_values.get(flood_key)
+        if val is None or val < 0:
+            raise SystemExit(f"flood values.{flood_key} invalid: {val}")
+
     verify_governance_runtime_behavior()
     expected_lane = "v1.0"
     active_lane = resolve_runtime_lane()

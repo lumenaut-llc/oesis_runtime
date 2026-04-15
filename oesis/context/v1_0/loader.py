@@ -43,6 +43,14 @@ def load_support_objects() -> dict:
     }
 
 
+def _try_load_example(name: str) -> dict | None:
+    """Load an example JSON if present; return None if missing."""
+    path = EXAMPLES_DIR / name
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return None
+
+
 def load_default_bundle(*, parcel_id: str = DEFAULT_PARCEL_ID) -> dict:
     packet = load_example_json("node-observation.example.json")
     packet["node_id"] = "bench-air-01"
@@ -56,7 +64,8 @@ def load_default_bundle(*, parcel_id: str = DEFAULT_PARCEL_ID) -> dict:
     support_objects["control_compatibility"]["parcel_id"] = parcel_id
     support_objects["intervention_event"]["parcel_id"] = parcel_id
     support_objects["verification_outcome"]["parcel_id"] = parcel_id
-    return {
+
+    result = {
         "parcel_id": parcel_id,
         "node_packet": packet,
         "parcel_context": parcel_context,
@@ -64,3 +73,15 @@ def load_default_bundle(*, parcel_id: str = DEFAULT_PARCEL_ID) -> dict:
         "raw_public_smoke": raw_public_smoke,
         **support_objects,
     }
+
+    mast_lite = _try_load_example("node-observation-mast-lite.example.json")
+    if mast_lite is not None:
+        mast_lite["node_id"] = "mast-lite-01"
+        result["mast_lite_packet"] = mast_lite
+
+    flood = _try_load_example("node-observation-flood.example.json")
+    if flood is not None:
+        flood["node_id"] = "flood-node-01"
+        result["flood_packet"] = flood
+
+    return result

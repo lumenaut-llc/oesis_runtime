@@ -45,7 +45,7 @@ def build_v10_runtime_flow(*, computed_at: str = "2026-03-30T19:46:00Z") -> dict
         verification_outcome=bundle["verification_outcome"],
         public_context=public_context,
     )
-    parcel_view = build_parcel_view(parcel_state)
+    parcel_view = build_parcel_view(parcel_state, trust_score=parcel_state.get("trust_score"))
     evidence_summary = build_evidence_summary(parcel_state)
     result = {
         "node_packet": bundle["node_packet"],
@@ -110,12 +110,30 @@ def verify_governance_runtime_behavior() -> None:
                     "data_classes": ["indoor_pm25"],
                     "custody_tier": "shared",
                     "recipient_type": "neighborhood_pool",
+                    "notice_acknowledged": True,
                 },
             )
         except parcel_api.ParcelViewError:
             pass
         else:
             raise SystemExit("expected structurally private data class to fail consent grant")
+
+        # Notice enforcement: grant without notice_acknowledged must fail
+        try:
+            parcel_api.grant_consent(
+                consent_path,
+                parcel_id="parcel_001",
+                payload={
+                    "sharing_scope": "neighborhood_pm25",
+                    "data_classes": ["outdoor_pm25"],
+                    "custody_tier": "shared",
+                    "recipient_type": "neighborhood_pool",
+                },
+            )
+        except parcel_api.ParcelViewError:
+            pass
+        else:
+            raise SystemExit("expected consent grant without notice acknowledgment to fail")
 
         granted = parcel_api.grant_consent(
             consent_path,
@@ -127,8 +145,12 @@ def verify_governance_runtime_behavior() -> None:
                 "recipient_type": "neighborhood_pool",
                 "temporal_resolution": "hourly",
                 "spatial_precision": "parcel",
+                "notice_acknowledged": True,
+                "notice_acknowledged_at": "2026-04-15T00:00:00Z",
             },
         )
+        if granted.get("notice_acknowledged_at") is None:
+            raise SystemExit("granted consent must carry notice_acknowledged_at")
         if granted["revoked_at"] is not None:
             raise SystemExit("newly granted consent should be active")
 
@@ -263,6 +285,14 @@ def main() -> None:
         val = flood_values.get(flood_key)
         if val is None or val < 0:
             raise SystemExit(f"flood values.{flood_key} invalid: {val}")
+
+    # Deployment grade assertions (PU-6, V1-G14)
+    pv = payload["parcel_view"]
+    if "deployment_grade" not in pv:
+        raise SystemExit("parcel_view missing deployment_grade")
+    valid_grades = ("bench_prototype", "field_provisional", "field_verified")
+    if pv["deployment_grade"] not in valid_grades:
+        raise SystemExit(f"deployment_grade invalid: {pv['deployment_grade']} (expected one of {valid_grades})")
 
     verify_governance_runtime_behavior()
     expected_lane = "v1.0"

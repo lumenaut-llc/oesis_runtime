@@ -22,6 +22,8 @@ from oesis.common.runtime_lane import (
     versioning_payload,
 )
 
+from oesis.ingest.v1_0.manage_node_registry import RegistryError, update_node_metadata
+
 from .format_evidence_summary import build_evidence_summary
 from .format_parcel_view import ParcelViewError, build_parcel_view, validate_sharing_settings
 from .run_retention_cleanup import run_cleanup
@@ -425,6 +427,15 @@ def grant_consent(path: Path, *, parcel_id: str, payload: dict) -> dict:
         raise ParcelViewError("spatial_precision must be one of: parcel, block, neighborhood")
     _validate_data_classes_for_sharing(data_classes, custody_tier)
 
+    # Notice acknowledgment required for consent grant (PI-5)
+    notice_acknowledged = payload.get("notice_acknowledged", False)
+    notice_acknowledged_at = payload.get("notice_acknowledged_at")
+    if not notice_acknowledged:
+        raise ParcelViewError(
+            "notice must be acknowledged before granting consent "
+            "(set notice_acknowledged: true and notice_acknowledged_at)"
+        )
+
     consent_record = {
         "consent_id": f"consent_{uuid4().hex[:12]}",
         "parcel_id": parcel_id,
@@ -440,6 +451,7 @@ def grant_consent(path: Path, *, parcel_id: str, payload: dict) -> dict:
         "temporal_resolution": temporal_resolution,
         "spatial_precision": spatial_precision,
         "consent_version": int(payload.get("consent_version", 1)),
+        "notice_acknowledged_at": notice_acknowledged_at or now_iso(),
         "ui_surface": payload.get("ui_surface"),
         "user_agent": payload.get("user_agent"),
         "ip_hash": payload.get("ip_hash"),
@@ -558,6 +570,7 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
     rights_store_path = None
     access_log_path = None
     export_dir_path = None
+    node_registry_path = None
     allowed_input_roots = []
 
     def _send_json(self, status: int, payload: dict):
@@ -1064,6 +1077,54 @@ class ParcelPlatformRequestHandler(BaseHTTPRequestHandler):
                 },
             )
             return
+
+        # POST /v1/registry/nodes/{node_id}/metadata — installation metadata capture (PU-5)
+        if len(parts) == 5 and parts[:2] == ["v1", "registry"] and parts[2] == "nodes" and parts[4] == "metadata":
+            node_id = parts[3]
+            if self.__class__.node_registry_path is None:
+                self._send_json(
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    {"ok": False, "error": "no_registry", "detail": "node registry not configured"},
+                )
+                return
+            try:
+                payload = self._read_json()
+                updated_node = update_node_metadata(
+                    self.__class__.node_registry_path,
+                    node_id,
+                    payload,
+                )
+                append_access_event(
+                    self.access_log_path,
+                    actor="parcel-platform-api",
+                    action="update_node_metadata",
+                    parcel_id=updated_node.get("installation_metadata", {}).get("location_type", "unknown"),
+                    data_classes=["administrative_record"],
+                    justification="installation_metadata_capture",
+                )
+            except RegistryError as exc:
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"ok": False, "error": "registry_error", "detail": str(exc)},
+                )
+                return
+            except (ParcelViewError, KeyError, json.JSONDecodeError) as exc:
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"ok": False, "error": "invalid_metadata", "detail": str(exc)},
+                )
+                return
+
+            self._send_json(
+                HTTPStatus.OK,
+                {
+                    "ok": True,
+                    "node": updated_node,
+                    "versioning": versioning_payload(lane=runtime_lane),
+                },
+            )
+            return
+
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
 
     def log_message(self, format, *args):

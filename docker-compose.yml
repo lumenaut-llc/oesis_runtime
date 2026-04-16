@@ -1,0 +1,77 @@
+# OESIS runtime services for pilot deployment.
+#
+# Usage:
+#   docker compose build
+#   docker compose up -d
+#   docker compose down
+#
+# Configuration via environment variables:
+#   OESIS_INGEST_API_KEY      - API key for ingest authorization (optional)
+#   OESIS_NODE_REGISTRY_PATH  - Path to node registry JSON (optional)
+#   OESIS_AIRNOW_API_KEY      - AirNow API key for live smoke data (optional)
+#   OESIS_AIRNOW_ZIP_CODE     - Zip code for AirNow queries (default: 97201)
+#   OESIS_FEED_CACHE_DIR      - Directory for feed cache persistence (optional)
+
+services:
+  ingest-api:
+    build:
+      context: .
+      target: ingest
+    ports:
+      - "8787:8787"
+    environment:
+      - OESIS_RUNTIME_LANE=v1.0
+      - OESIS_INGEST_API_KEY=${OESIS_INGEST_API_KEY:-}
+      - OESIS_NODE_REGISTRY_PATH=${OESIS_NODE_REGISTRY_PATH:-}
+    volumes:
+      - oesis-data:/data
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8787/v1/ingest/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  parcel-api:
+    build:
+      context: .
+      target: parcel
+    ports:
+      - "8789:8789"
+    environment:
+      - OESIS_RUNTIME_LANE=v1.0
+      - OESIS_AIRNOW_API_KEY=${OESIS_AIRNOW_API_KEY:-}
+      - OESIS_AIRNOW_ZIP_CODE=${OESIS_AIRNOW_ZIP_CODE:-97201}
+      - OESIS_FEED_CACHE_DIR=/data/feed-cache
+    volumes:
+      - oesis-data:/data
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8789/v1/parcel-platform/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  shared-map-api:
+    build:
+      context: .
+      target: shared-map
+    ports:
+      - "8791:8791"
+    environment:
+      - OESIS_RUNTIME_LANE=v1.0
+    volumes:
+      - oesis-data:/data
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8791/v1/shared-map/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  oesis-data:
+    driver: local

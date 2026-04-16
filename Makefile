@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help oesis-demo oesis-validate oesis-accept oesis-check oesis-http-check oesis-v02-accept oesis-v02-check oesis-v02-http-check oesis-v03-accept oesis-v03-check oesis-v03-http-check oesis-v04-accept oesis-v04-check oesis-v04-http-check oesis-v05-accept oesis-v05-check oesis-v05-http-check oesis-v10-validate oesis-v10-accept oesis-v10-check oesis-v10-http-check
+.PHONY: help oesis-demo oesis-validate oesis-accept oesis-check oesis-http-check oesis-v02-accept oesis-v02-check oesis-v02-http-check oesis-v03-accept oesis-v03-check oesis-v03-http-check oesis-v04-accept oesis-v04-check oesis-v04-http-check oesis-v05-accept oesis-v05-check oesis-v05-http-check oesis-v10-validate oesis-v10-accept oesis-v10-check oesis-v10-http-check oesis-v10-auth-check oesis-v10-governance-http-check docker-build docker-up docker-down
 
 help: ## Show available targets
 	@echo "Usage: make <target>"
@@ -81,3 +81,18 @@ oesis-v10-check:
 
 oesis-v10-http-check:
 	./scripts/oesis_v10_http_smoke_check.sh
+
+oesis-v10-auth-check:
+	OESIS_RUNTIME_LANE=v1.0 python3 -m oesis.checks.v1_0.auth_check
+
+oesis-v10-governance-http-check:
+	OESIS_RUNTIME_LANE=v1.0 python3 -m oesis.checks.v1_0.http_governance_check
+
+docker-build:
+	docker compose build
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down

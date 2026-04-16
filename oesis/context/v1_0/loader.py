@@ -1,8 +1,13 @@
-"""Small context loader helpers for the narrow runtime path plus bridge support examples."""
+"""Small context loader helpers for the narrow runtime path plus bridge support examples.
+
+Supports live public feeds when OESIS_AIRNOW_API_KEY is set (DA-5, V1-G4).
+Falls back to fixture data when no API keys are configured.
+"""
 
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from oesis.common.repo_paths import EXAMPLES_DIR
@@ -29,6 +34,43 @@ def load_public_contexts(
     weather = load_example_json("raw-public-weather.example.json") if weather_path is None else json.loads(Path(weather_path).resolve().read_text(encoding="utf-8"))
     smoke = load_example_json("raw-public-smoke.example.json") if smoke_path is None else json.loads(Path(smoke_path).resolve().read_text(encoding="utf-8"))
     return weather, smoke
+
+
+def load_public_contexts_live(parcel_id: str = DEFAULT_PARCEL_ID) -> tuple[dict, dict, str]:
+    """Load public contexts from live feeds if configured, else from fixtures.
+
+    Returns (weather_context, smoke_context, evidence_mode_hint) where
+    evidence_mode_hint is one of:
+    - "local_plus_public": fresh data from live feed
+    - "degraded": stale cached data
+    - "fixture": using checked-in fixture data (no API keys configured)
+    """
+    airnow_key = os.environ.get("OESIS_AIRNOW_API_KEY")
+    if not airnow_key:
+        weather, smoke = load_public_contexts()
+        return weather, smoke, "fixture"
+
+    # Lazy import to avoid import overhead when not using live feeds
+    from oesis.context.public_feeds.public_feed_manager import PublicFeedManager
+
+    manager = PublicFeedManager(airnow_api_key=airnow_key)
+
+    # Try live smoke context
+    smoke_ctx, smoke_mode = manager.get_smoke_context(parcel_id)
+
+    # Weather: try live, fall back to fixture
+    weather_ctx, weather_mode = manager.get_weather_context(parcel_id)
+    if weather_ctx is None:
+        weather_ctx = load_example_json("raw-public-weather.example.json")
+
+    if smoke_ctx is None:
+        smoke_ctx = load_example_json("raw-public-smoke.example.json")
+        return weather_ctx, smoke_ctx, "fixture"
+
+    # Use the worst mode between weather and smoke
+    if smoke_mode == "degraded" or weather_mode == "degraded":
+        return weather_ctx, smoke_ctx, "degraded"
+    return weather_ctx, smoke_ctx, "local_plus_public"
 
 
 def load_support_objects() -> dict:

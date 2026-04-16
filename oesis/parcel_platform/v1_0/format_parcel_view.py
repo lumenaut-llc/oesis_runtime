@@ -91,7 +91,31 @@ def default_sharing_settings(parcel_id: str) -> dict:
     }
 
 
-def build_parcel_view(payload: dict, sharing_settings: dict | None = None) -> dict:
+def derive_deployment_grade(trust_score: dict | None) -> str:
+    """Derive deployment grade from trust score factors.
+
+    - field_verified: both calibration_state and install_quality are high
+    - field_provisional: both are high or medium
+    - bench_prototype: anything else, or no trust score available
+    """
+    if trust_score is None:
+        return "bench_prototype"
+
+    factors = {f["factor_key"]: f for f in trust_score.get("factors", [])}
+    cal = factors.get("calibration_state", {})
+    install = factors.get("install_quality", {})
+
+    cal_band = cal.get("band", "degraded")
+    install_band = install.get("band", "degraded")
+
+    if cal_band == "high" and install_band == "high":
+        return "field_verified"
+    if cal_band in ("high", "medium") and install_band in ("high", "medium"):
+        return "field_provisional"
+    return "bench_prototype"
+
+
+def build_parcel_view(payload: dict, sharing_settings: dict | None = None, *, trust_score: dict | None = None) -> dict:
     validate_parcel_state(payload)
     sharing_settings = sharing_settings or default_sharing_settings(payload["parcel_id"])
     validate_sharing_settings(sharing_settings)
@@ -101,6 +125,9 @@ def build_parcel_view(payload: dict, sharing_settings: dict | None = None) -> di
         data_classes_visible.append("public_context")
     if "shared" in payload["inference_basis"] or sharing_settings["neighborhood_aggregate"]:
         data_classes_visible.append("shared_data")
+
+    # Derive deployment grade from trust score if available
+    effective_trust_score = trust_score or payload.get("trust_score")
 
     return {
         "parcel_id": payload["parcel_id"],
@@ -122,6 +149,7 @@ def build_parcel_view(payload: dict, sharing_settings: dict | None = None) -> di
         "closed_loop_summary": payload.get("closed_loop_summary"),
         "freshness": payload["freshness"],
         "provenance_summary": payload["provenance_summary"],
+        "deployment_grade": derive_deployment_grade(effective_trust_score),
         "data_classes_visible": data_classes_visible,
         "sharing_summary": {
             "private_only": sharing_settings["private_only"],

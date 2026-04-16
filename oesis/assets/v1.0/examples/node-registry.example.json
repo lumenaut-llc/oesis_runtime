@@ -1,0 +1,48 @@
+{
+  "parcel_id": "parcel_demo_001",
+  "updated_at": "2026-04-15T00:00:00Z",
+  "nodes": [
+    {
+      "node_id": "bench-air-01",
+      "node_family": "bench-air-node",
+      "schema_version": "oesis.bench-air.v1",
+      "status": "active",
+      "registered_at": "2026-03-01T00:00:00Z",
+      "location_mode": "indoor",
+      "installation_metadata": {
+        "location_type": "indoor",
+        "mount_type": "bench",
+        "install_date": "2026-03-01",
+        "install_status": "standard"
+      }
+    },
+    {
+      "node_id": "mast-lite-01",
+      "node_family": "mast-lite",
+      "schema_version": "oesis.bench-air.v1",
+      "status": "active",
+      "registered_at": "2026-03-15T00:00:00Z",
+      "location_mode": "sheltered",
+      "installation_metadata": {
+        "location_type": "sheltered_outdoor",
+        "mount_type": "mast",
+        "install_date": "2026-03-15",
+        "install_status": "provisional"
+      }
+    },
+    {
+      "node_id": "flood-node-01",
+      "node_family": "flood-node",
+      "schema_version": "oesis.flood-node.v1",
+      "status": "active",
+      "registered_at": "2026-03-20T00:00:00Z",
+      "location_mode": "outdoor",
+      "installation_metadata": {
+        "location_type": "outdoor_exposed",
+        "mount_type": "fixed_post",
+        "install_date": "2026-03-20",
+        "install_status": "provisional"
+      }
+    }
+  ]
+}

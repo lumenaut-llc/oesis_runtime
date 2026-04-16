@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import threading
 from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 from oesis.common.runtime_lane import (
     SUPPORTED_LANES,
@@ -16,6 +18,7 @@ from oesis.common.runtime_lane import (
     versioning_payload,
 )
 
+from .auth import authorize_ingest_request
 from .normalize_packet import normalize_packet
 from .validate_examples import ValidationError
 
@@ -113,6 +116,8 @@ LIVE_PAGE_HTML = """<!DOCTYPE html>
 
 class IngestRequestHandler(BaseHTTPRequestHandler):
     server_version = "OESISIngest/0.1"
+    api_key: str | None = None
+    node_registry: dict | None = None
 
     def _send_json(self, status: int, payload: dict):
         body = json.dumps(payload, indent=2, sort_keys=True).encode("utf-8")
@@ -223,6 +228,23 @@ class IngestRequestHandler(BaseHTTPRequestHandler):
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
 
+        # Authorization check (opt-in via env vars)
+        auth_result = authorize_ingest_request(
+            self.headers,
+            api_key=self.__class__.api_key,
+            registry=self.__class__.node_registry,
+        )
+        if not auth_result.authorized:
+            self._send_json(
+                HTTPStatus.UNAUTHORIZED,
+                {
+                    "ok": False,
+                    "error": "unauthorized",
+                    "detail": auth_result.rejection_reason,
+                },
+            )
+            return
+
         parcel_id = self.headers.get("X-OESIS-Parcel-Id", "parcel_demo_001")
         try:
             runtime_lane = resolve_runtime_lane(requested_lane_from_headers(self.headers))
@@ -272,6 +294,23 @@ def parse_args() -> argparse.Namespace:
 
 def main():
     args = parse_args()
+
+    # Opt-in authorization from environment
+    api_key = os.environ.get("OESIS_INGEST_API_KEY")
+    registry_path = os.environ.get("OESIS_NODE_REGISTRY_PATH")
+    if api_key:
+        IngestRequestHandler.api_key = api_key
+        print("Authorization: API key required (OESIS_INGEST_API_KEY set)")
+    if registry_path:
+        try:
+            IngestRequestHandler.node_registry = json.loads(
+                Path(registry_path).read_text(encoding="utf-8")
+            )
+            node_count = len(IngestRequestHandler.node_registry.get("nodes", []))
+            print(f"Authorization: node registry loaded ({node_count} nodes from {registry_path})")
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"WARNING: could not load node registry from {registry_path}: {exc}")
+
     server = ThreadingHTTPServer((args.host, args.port), IngestRequestHandler)
     print(f"Listening on http://{args.host}:{args.port}")
     print(f"Live dashboard: http://{args.host}:{args.port}/v1/ingest/live")

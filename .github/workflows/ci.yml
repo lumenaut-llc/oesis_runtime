@@ -25,7 +25,7 @@ jobs:
     needs: check
     strategy:
       matrix:
-        lane: ["v02", "v03", "v04", "v05"]
+        lane: ["v02", "v03", "v04", "v05", "v10"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,3 +33,48 @@ jobs:
           python-version: "3.11"
       - run: pip install -e .
       - run: make oesis-${{ matrix.lane }}-check
+
+  cross-repo-example-sync:
+    name: Verify examples match specs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clone program-specs
+        run: git clone --depth 1 https://github.com/lumenaut-llc/oesis-program-specs.git ../oesis-program-specs
+
+      - name: Compare canonical lane examples
+        run: |
+          errors=0
+          for lane in v0.1 v1.0 v1.5; do
+            specs_dir="../oesis-program-specs/contracts/$lane/examples"
+            runtime_dir="oesis/assets/$lane/examples"
+            if [ ! -d "$specs_dir" ] || [ ! -d "$runtime_dir" ]; then
+              continue
+            fi
+            # Check for files in runtime but not specs
+            for f in "$runtime_dir"/*.json; do
+              [ -e "$f" ] || continue
+              base=$(basename "$f")
+              if [ ! -f "$specs_dir/$base" ]; then
+                echo "DRIFT: $lane/$base exists in runtime but not in specs"
+                errors=$((errors+1))
+              fi
+            done
+            # Check for content mismatches
+            for f in "$specs_dir"/*.json; do
+              [ -e "$f" ] || continue
+              base=$(basename "$f")
+              if [ -f "$runtime_dir/$base" ]; then
+                if ! diff -q "$f" "$runtime_dir/$base" > /dev/null 2>&1; then
+                  echo "MISMATCH: $lane/$base content differs between specs and runtime"
+                  errors=$((errors+1))
+                fi
+              fi
+            done
+          done
+          if [ $errors -gt 0 ]; then
+            echo "FAIL: $errors example sync issue(s) found"
+            exit 1
+          fi
+          echo "PASS: All canonical lane examples match specs"

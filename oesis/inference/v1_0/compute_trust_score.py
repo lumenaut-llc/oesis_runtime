@@ -5,8 +5,8 @@ parcel-state confidence (conclusion quality). A parcel can have high trust
 (fresh, calibrated, well-installed sensors) but low confidence (ambiguous
 evidence), or vice versa.
 
-Contract: contracts/v1.0/trust-score-schema.md
-Schema:   contracts/v1.0/schemas/trust-score.schema.json
+Contract: https://github.com/lumenaut-llc/oesis-contracts/blob/main/v1.0/trust-score-schema.md
+Schema:   https://github.com/lumenaut-llc/oesis-contracts/blob/main/v1.0/schemas/trust-score.schema.json
 """
 
 from __future__ import annotations

@@ -123,6 +123,18 @@ the `normalized-observation` schema. Each node family has its own normalizer:
 - `normalize_public_weather_context.py` — regional weather context
 - `normalize_public_smoke_context.py` — regional smoke context
 
+**Admissibility (planned — program-phase `v0.2` / Milestone 2, capability-stage `current v1`):** ingest will also produce
+`admissible_to_calibration_dataset: bool` plus `admissibility_reasons: [string]`
+on each normalized observation per
+[`calibration-program.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/calibration-program.md)
+§C (physical sensors) or
+[`adapter-trust-program.md`](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/adapter-trust-program.md)
+§C (adapter-derived data). The decision is runtime-computed; the facts it
+depends on are carried in the canonical observation schema — tracked as gap
+G17 in oesis-program-specs. Branch is selected by the observation's
+`adapter_tier` field (absent or `tier_3_direct` → calibration-program rules;
+`tier_1_passive` or `tier_2_adapter` → adapter-trust-program rules).
+
 ### Inference phase (`oesis.inference`)
 
 Combines normalized observations with public context and parcel priors to
@@ -213,4 +225,6 @@ All under `oesis/assets/<lane>/config/inference/`:
 
 - [cross-repo-architecture.md](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/cross-repo-architecture.md) — how all 4 repos work together
 - [version-and-promotion-matrix.md](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/version-and-promotion-matrix.md) — four-axis versioning model
+- [calibration-program.md](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/calibration-program.md) — physical-sensor calibration policy; §C admissibility rule; §F build-spec metadata block
+- [adapter-trust-program.md](https://github.com/lumenaut-llc/oesis-program-specs/blob/main/architecture/system/adapter-trust-program.md) — adapter trust policy for Tier 1 / Tier 2 data (capability-stage v1.5)
 - [README.md](README.md) — getting started, quick demo, lane commands

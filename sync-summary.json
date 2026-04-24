@@ -1,0 +1,35 @@
+
+[sync-runtime-assets] contracts @ 77b0994d35a0
+  [32mPASS[0m v0.1: copied=0 removed=0 unchanged=30
+  [32mPASS[0m v1.0: copied=0 removed=0 unchanged=19
+  [32mPASS[0m v1.5: copied=0 removed=0 unchanged=6
+{
+  "steps": [
+    {
+      "command": "sync-runtime-assets",
+      "contracts_ref": "77b0994d35a0979a402701c975c8ee077cdfd034",
+      "lanes": {
+        "v0.1": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 30
+        },
+        "v1.0": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 19
+        },
+        "v1.5": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 6
+        }
+      },
+      "files_copied": 0,
+      "files_removed": 0,
+      "files_unchanged": 55,
+      "dry_run": false
+    }
+  ],
+  "exit_code": 0
+}

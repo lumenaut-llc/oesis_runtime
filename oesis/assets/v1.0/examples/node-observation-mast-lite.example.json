@@ -24,6 +24,12 @@
     "pressure_hpa": 1012.4,
     "voc_trend_source": "gas_resistance_ohm"
   },
+  "burn_in_complete": true,
+  "node_calibration_session_ref": "calsession:mast-lite-01:2026-04-15T11:00:00Z",
+  "node_deployment_maturity": "v1.0",
+  "node_deployment_class": "sheltered",
+  "protective_fixture_verified_at": "2026-04-15T11:30:00Z",
+  "placement_representativeness_class": "B",
   "health": {
     "uptime_s": 5420,
     "wifi_connected": true,

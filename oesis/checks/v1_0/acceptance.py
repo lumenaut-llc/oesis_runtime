@@ -301,12 +301,54 @@ def verify_admissibility_stamping(payload: dict) -> None:
             raise SystemExit("v1.0 acceptance: mast_lite_normalized missing admissibility fields")
 
 
+def verify_admissibility_in_explanation(payload: dict) -> None:
+    """Assert G15 step 3: inference surfaces admissibility in the explanation
+    payload.
+
+    The structured object is the durable artifact (per ADR 0009). Existing UX
+    renderers also see a human-readable line in `limitations` when the
+    observation is inadmissible.
+    """
+    parcel_state = payload["parcel_state"]
+    if "explanation_payload" not in parcel_state:
+        raise SystemExit("v1.0 acceptance: parcel_state missing explanation_payload (G15 step 3)")
+    ep = parcel_state["explanation_payload"]
+
+    # Structured admissibility object should be present on v1.0 since ingest
+    # stamps it. Absence is a wiring regression.
+    if "admissibility" not in ep:
+        raise SystemExit(
+            "v1.0 acceptance: explanation_payload missing admissibility object "
+            "(G15 step 3 wiring regression — ingest stamps it but inference dropped it)"
+        )
+    a = ep["admissibility"]
+    if "admissible_to_calibration_dataset" not in a or "admissibility_reasons" not in a:
+        raise SystemExit(f"explanation_payload.admissibility shape wrong: {a}")
+    if not isinstance(a["admissible_to_calibration_dataset"], bool):
+        raise SystemExit("admissible_to_calibration_dataset must be bool")
+    if not isinstance(a["admissibility_reasons"], list):
+        raise SystemExit("admissibility_reasons must be list")
+
+    # When inadmissible, the FIRST limitations entry must be the rendered
+    # admissibility line — UX expects to render it prominently.
+    if not a["admissible_to_calibration_dataset"]:
+        limitations = ep.get("limitations", [])
+        if not limitations:
+            raise SystemExit("inadmissible observation but limitations list is empty")
+        if "not admissible to the calibration dataset" not in limitations[0]:
+            raise SystemExit(
+                f"inadmissible observation: limitations[0] should render admissibility line, "
+                f"got: {limitations[0]!r}"
+            )
+
+
 def main() -> None:
     payload = build_v10_runtime_flow()
     verify_runtime_flow_artifacts(payload)
     verify_trust_score(payload)
     verify_value_assertions(payload)
     verify_admissibility_stamping(payload)
+    verify_admissibility_in_explanation(payload)
     # Mast-lite assertions
     if "mast_lite_normalized" not in payload:
         raise SystemExit("v1.0 acceptance: mast_lite_normalized missing from flow")

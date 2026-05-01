@@ -342,6 +342,59 @@ def verify_admissibility_in_explanation(payload: dict) -> None:
             )
 
 
+def verify_adapter_admissibility_in_explanation(payload: dict) -> None:
+    """Assert adapter §C surfacing: when source_provenance_record contains
+    adapter_derived records, the explanation payload carries an
+    adapter_admissibility summary.
+
+    Mirror of verify_admissibility_in_explanation but for the adapter path.
+    """
+    parcel_state = payload["parcel_state"]
+    ep = parcel_state["explanation_payload"]
+    spr = payload.get("source_provenance_record")
+    if not spr:
+        return  # nothing to surface
+    has_adapter_records = any(r.get("source_kind") == "adapter_derived" for r in spr.get("records", []))
+    if not has_adapter_records:
+        return
+
+    if "adapter_admissibility" not in ep:
+        raise SystemExit(
+            "v1.0 acceptance: explanation_payload missing adapter_admissibility "
+            "(adapter §C surfacing regression — adapter_derived records present but no summary)"
+        )
+    summary = ep["adapter_admissibility"]
+    for key in ("adapter_records_total", "admissible_count", "inadmissible_count", "reason_code_counts", "per_record"):
+        if key not in summary:
+            raise SystemExit(f"adapter_admissibility missing {key}: {summary}")
+    if summary["adapter_records_total"] != summary["admissible_count"] + summary["inadmissible_count"]:
+        raise SystemExit(
+            f"adapter_admissibility count invariant broken: "
+            f"total={summary['adapter_records_total']} but admissible+inadmissible="
+            f"{summary['admissible_count'] + summary['inadmissible_count']}"
+        )
+    # Reason codes should look like adapter-§C codes when nothing is admissible.
+    # We don't pin specific codes (depends on which fixture is loaded) but we
+    # do assert no PHYSICAL-SENSOR codes leaked in (would indicate routing bug).
+    physical_only_codes = {
+        "node_identity_missing",
+        "deployment_maturity_insufficient",
+        "deployment_class_mismatch",
+        "burn_in_incomplete",
+        "reference_calibration_stale",
+        "representativeness_class_d",
+        "fixture_unverified",
+        "sensor_health_degraded",
+    }
+    seen_codes = set(summary.get("reason_code_counts", {}).keys())
+    bad = seen_codes & physical_only_codes
+    if bad:
+        raise SystemExit(
+            f"adapter_admissibility surfacing routed adapter records to physical-sensor §C "
+            f"(reason-code routing bug): saw {sorted(bad)}"
+        )
+
+
 def main() -> None:
     payload = build_v10_runtime_flow()
     verify_runtime_flow_artifacts(payload)
@@ -349,6 +402,7 @@ def main() -> None:
     verify_value_assertions(payload)
     verify_admissibility_stamping(payload)
     verify_admissibility_in_explanation(payload)
+    verify_adapter_admissibility_in_explanation(payload)
     # Mast-lite assertions
     if "mast_lite_normalized" not in payload:
         raise SystemExit("v1.0 acceptance: mast_lite_normalized missing from flow")

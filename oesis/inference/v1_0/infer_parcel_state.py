@@ -11,6 +11,7 @@ from pathlib import Path
 
 from oesis.common.repo_paths import EXAMPLES_DIR, INFERENCE_CONFIG_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload
+from oesis.ingest.v1_0.admissibility import compute_admissibility
 from .compute_trust_score import compute_trust_score
 from .parcel_first_hazard import (
     apply_public_and_shared_support,
@@ -1602,6 +1603,120 @@ def _admissibility_limitation_summary(reasons: list[str]) -> str | None:
     )
 
 
+def _build_adapter_record_facts(record: dict) -> dict:
+    """Extract adapter-trust §C facts from a single source-provenance record.
+
+    The G18 schema-side change made these fields conditionally required when
+    source_kind == "adapter_derived", so well-formed records in v1.5 carry
+    them. compute_admissibility() tolerates missing keys (each absence
+    becomes a reason code), so partial records still render correctly.
+    """
+    return {
+        "adapter_source_ref": record.get("adapter_source_ref"),
+        "adapter_contract_version": record.get("adapter_contract_version"),
+        "adapter_onboarding_ref": record.get("adapter_onboarding_ref"),
+        "adapter_credential_last_verified_at": record.get("adapter_credential_last_verified_at"),
+        # observed_at is on the record itself (used for cadence_stale check).
+        "observed_at": record.get("observed_at"),
+        # uncertainty/incident fields are optional in the policy and may
+        # appear on richer records; pass through whatever is there.
+        "adapter_uncertainty": record.get("adapter_uncertainty"),
+        "adapter_uncertainty_bound": record.get("adapter_uncertainty_bound"),
+        "adapter_incident_open": record.get("adapter_incident_open"),
+    }
+
+
+def build_adapter_admissibility_summary(source_provenance_record: dict | None) -> dict | None:
+    """Compute per-record adapter admissibility for a source-provenance-record.
+
+    Returns a summary suitable for the explanation payload:
+      {
+        "adapter_records_total": <count of records with source_kind == adapter_derived>,
+        "admissible_count": <records that pass adapter §C>,
+        "inadmissible_count": <records that fail>,
+        "reason_code_counts": {<code>: <count of records that hit it>},
+        "per_record": [{
+          "signal_key": ..., "adapter_tier": ...,
+          "admissible_to_calibration_dataset": bool,
+          "admissibility_reasons": [str],
+        }, ...]
+      }
+
+    Returns None when no source_provenance_record was provided OR when no
+    records are adapter_derived (so we don't fabricate an empty section
+    on flows that have no adapter exposure).
+    """
+    if not source_provenance_record:
+        return None
+    records = source_provenance_record.get("records", [])
+    adapter_records = [r for r in records if r.get("source_kind") == "adapter_derived"]
+    if not adapter_records:
+        return None
+
+    per_record: list[dict] = []
+    reason_code_counts: dict[str, int] = {}
+    admissible_count = 0
+    for record in adapter_records:
+        tier = record.get("adapter_tier")
+        # If adapter_tier is missing on an adapter_derived record, the record
+        # is schema-malformed (G18 makes adapter_tier conditionally required).
+        # We still want to route to the adapter §C path since source_kind
+        # already tells us this is an adapter record. Default to TIER_2_ADAPTER
+        # so the function evaluates adapter-§C checks and reports adapter
+        # reason codes — physical-sensor reason codes would be wrong policy.
+        # The function emits tier_insufficient automatically when the tier
+        # is recognized but not adequate; missing-tier surfaces via the
+        # other adapter-fact absences.
+        effective_tier = tier if tier in ("tier_1_passive", "tier_2_adapter", "tier_3_direct") else "tier_2_adapter"
+        result = compute_admissibility(_build_adapter_record_facts(record), tier=effective_tier)
+        if result.admissible:
+            admissible_count += 1
+        for code in result.reasons:
+            reason_code_counts[code] = reason_code_counts.get(code, 0) + 1
+        per_record.append({
+            "signal_key": record.get("signal_key"),
+            "adapter_tier": tier,  # report what the record actually carried
+            "admissible_to_calibration_dataset": result.admissible,
+            "admissibility_reasons": result.reasons,
+        })
+
+    return {
+        "adapter_records_total": len(adapter_records),
+        "admissible_count": admissible_count,
+        "inadmissible_count": len(adapter_records) - admissible_count,
+        # Sort reason_code_counts deterministically so the same flow always
+        # produces byte-identical output (helps fixture diffs stay readable).
+        "reason_code_counts": dict(sorted(reason_code_counts.items())),
+        "per_record": per_record,
+    }
+
+
+def _adapter_admissibility_limitation_summary(adapter_summary: dict | None) -> str | None:
+    """Render an aggregate adapter-admissibility summary as a `limitations` line.
+
+    Surfaces only when there's at least one inadmissible adapter record.
+    Returns None when every adapter record is admissible (or none exist).
+    """
+    if not adapter_summary:
+        return None
+    inadmissible = adapter_summary.get("inadmissible_count", 0)
+    if inadmissible == 0:
+        return None
+    total = adapter_summary.get("adapter_records_total", 0)
+    counts = adapter_summary.get("reason_code_counts", {})
+    # Top 2 reason codes by count, ties broken by code name for determinism.
+    top_codes = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:2]
+    rendered_codes = []
+    for code, count in top_codes:
+        prose = _ADMISSIBILITY_REASON_PROSE.get(code, code)
+        rendered_codes.append(f"{prose} ({count})")
+    return (
+        f"{inadmissible} of {total} adapter-derived signals are not admissible: "
+        + "; ".join(rendered_codes)
+        + "."
+    )
+
+
 def build_explanation_payload(
     *,
     confidence: float,
@@ -1616,6 +1731,7 @@ def build_explanation_payload(
     public_context: dict | None,
     admissible_to_calibration_dataset: bool | None = None,
     admissibility_reasons: list[str] | None = None,
+    adapter_admissibility_summary: dict | None = None,
 ) -> dict:
     sorted_drivers = sorted(
         (item for item in evidence_contributions if item["role"] == "driver"),
@@ -1634,8 +1750,14 @@ def build_explanation_payload(
     # UX renderers that read `limitations` get the policy reason for free
     # without needing to know about the admissibility schema.
     admissibility_line = _admissibility_limitation_summary(admissibility_reasons or [])
+    adapter_line = _adapter_admissibility_limitation_summary(adapter_admissibility_summary)
+    prepend: list[str] = []
     if admissibility_line:
-        limitations = [admissibility_line] + limitations
+        prepend.append(admissibility_line)
+    if adapter_line:
+        prepend.append(adapter_line)
+    if prepend:
+        limitations = prepend + limitations
         # Re-cap to 3 so the field stays readable.
         limitations = limitations[:3]
 
@@ -1677,6 +1799,12 @@ def build_explanation_payload(
             "admissible_to_calibration_dataset": admissible_to_calibration_dataset,
             "admissibility_reasons": list(admissibility_reasons or []),
         }
+
+    # Adapter-record admissibility summary (parallel to bench-air admissibility
+    # but for the source-provenance-record path, per adapter-trust §C). Only
+    # surface when there were adapter_derived records to evaluate.
+    if adapter_admissibility_summary is not None:
+        payload["adapter_admissibility"] = adapter_admissibility_summary
 
     return payload
 
@@ -1934,6 +2062,13 @@ def infer_parcel_state(
         parcel_prior_details=parcel_prior_details,
         contrastive_explanations=contrastive_explanations,
     )
+    # Adapter-trust §C admissibility on every adapter_derived record in the
+    # source-provenance-record (G18). Computed here in inference because
+    # source-provenance-record is a parcel-platform support object, not an
+    # ingest-pipeline-stamped observation — the records carry the facts but
+    # don't already have a runtime decision attached.
+    adapter_admissibility_summary = build_adapter_admissibility_summary(source_provenance_record)
+
     explanation_payload = build_explanation_payload(
         confidence=confidence,
         evidence_mode=evidence_mode,
@@ -1951,6 +2086,7 @@ def infer_parcel_state(
         # did not stamp a decision," not "decision was admissible."
         admissible_to_calibration_dataset=payload.get("admissible_to_calibration_dataset"),
         admissibility_reasons=payload.get("admissibility_reasons"),
+        adapter_admissibility_summary=adapter_admissibility_summary,
     )
 
     trust_score = compute_trust_score(

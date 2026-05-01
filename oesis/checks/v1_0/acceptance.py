@@ -262,11 +262,51 @@ def verify_value_assertions(payload: dict) -> None:
         raise SystemExit(f"freshness seconds_since_latest negative: {secs}")
 
 
+def verify_admissibility_stamping(payload: dict) -> None:
+    """Assert G15 step 2: every bench-air normalized observation in the v1.0
+    flow carries admissibility decision fields (per ADR 0009).
+
+    The values themselves vary with whether the example fixture populated
+    the calibration §C facts — the v0.1-era fixtures used by build_default_bundle
+    will be inadmissible (correct policy outcome). What we enforce here is
+    that the FIELDS are present, not that any particular fixture is admissible.
+    """
+    normalized = payload["normalized_observation"]
+    if "admissible_to_calibration_dataset" not in normalized:
+        raise SystemExit(
+            "v1.0 acceptance: normalized_observation missing admissible_to_calibration_dataset "
+            "(G15 step 2 wiring regression)"
+        )
+    if "admissibility_reasons" not in normalized:
+        raise SystemExit(
+            "v1.0 acceptance: normalized_observation missing admissibility_reasons "
+            "(G15 step 2 wiring regression)"
+        )
+    admissible = normalized["admissible_to_calibration_dataset"]
+    reasons = normalized["admissibility_reasons"]
+    if not isinstance(admissible, bool):
+        raise SystemExit(f"admissible_to_calibration_dataset must be bool, got {type(admissible).__name__}")
+    if not isinstance(reasons, list):
+        raise SystemExit(f"admissibility_reasons must be list, got {type(reasons).__name__}")
+    # Invariant: admissible iff reasons is empty.
+    if admissible and reasons:
+        raise SystemExit(f"admissible=True but reasons populated: {reasons}")
+    if not admissible and not reasons:
+        raise SystemExit("admissible=False but reasons list is empty (rule engine should have populated codes)")
+
+    # Same invariants on mast-lite if present in this flow.
+    if "mast_lite_normalized" in payload:
+        ml = payload["mast_lite_normalized"]
+        if "admissible_to_calibration_dataset" not in ml or "admissibility_reasons" not in ml:
+            raise SystemExit("v1.0 acceptance: mast_lite_normalized missing admissibility fields")
+
+
 def main() -> None:
     payload = build_v10_runtime_flow()
     verify_runtime_flow_artifacts(payload)
     verify_trust_score(payload)
     verify_value_assertions(payload)
+    verify_admissibility_stamping(payload)
     # Mast-lite assertions
     if "mast_lite_normalized" not in payload:
         raise SystemExit("v1.0 acceptance: mast_lite_normalized missing from flow")

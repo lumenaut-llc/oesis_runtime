@@ -13,6 +13,7 @@ from pathlib import Path
 from oesis.common.repo_paths import EXAMPLES_DIR
 from oesis.common.runtime_lane import resolve_runtime_lane, versioning_payload
 
+from .admissibility import compute_admissibility
 from .normalize_circuit_packet import normalize_circuit_packet as _normalize_circuit
 from .normalize_flood_packet import normalize_flood_packet as _normalize_flood
 from .normalize_weather_pm_packet import normalize_weather_pm_packet as _normalize_weather_pm
@@ -33,6 +34,47 @@ def get_bme_payload(sensors: dict) -> dict:
 
 def has_value(payload: dict, field_name: str) -> bool:
     return field_name in payload and payload[field_name] is not None
+
+
+def build_admissibility_facts(payload: dict) -> dict:
+    """
+    Extract admissibility facts from a raw bench-air payload.
+
+    Per ADR 0009 / G17, the v1.0 node-observation schema carries six optional
+    calibration §C fact fields. We pass them straight through to
+    compute_admissibility along with identity, location_mode, and health —
+    the pure function tolerates missing keys (each absence becomes its
+    own reason code, which is the policy-correct outcome).
+
+    The v0.1-era payloads (no admissibility fact fields) flow through the
+    same path; they will be stamped inadmissible with multiple reason
+    codes — this is intentional. v0.1 fixtures should not be admitted to
+    coefficient fitting until producers emit the v1.0 facts.
+    """
+    return {
+        # Identity (§C check 1)
+        "node_id": payload.get("node_id"),
+        "firmware_version": payload.get("firmware_version"),
+        # Producer-side intent vs verified install (§C check 3)
+        "location_mode": payload.get("location_mode"),
+        "node_deployment_class": payload.get("node_deployment_class"),
+        # Maturity (§C check 2)
+        "node_deployment_maturity": payload.get("node_deployment_maturity"),
+        # Burn-in (§C check 4)
+        "burn_in_complete": payload.get("burn_in_complete"),
+        # Reference calibration (§C check 5). The schema carries
+        # node_calibration_session_ref (string pointer) only; if a producer
+        # also stamps node_calibration_verified_at the cadence check fires,
+        # otherwise the reason code is gated on session_ref alone.
+        "node_calibration_session_ref": payload.get("node_calibration_session_ref"),
+        "node_calibration_verified_at": payload.get("node_calibration_verified_at"),
+        # Placement representativeness (§C check 6)
+        "placement_representativeness_class": payload.get("placement_representativeness_class"),
+        # Protective fixture (§C check 7)
+        "protective_fixture_verified_at": payload.get("protective_fixture_verified_at"),
+        # Sensor health (§C check 8)
+        "health": payload.get("health", {}),
+    }
 
 
 def build_values(payload: dict) -> dict:
@@ -95,6 +137,11 @@ def normalize_packet(
     ingested_at = ingested_at or now_iso()
     resolved_lane = resolve_runtime_lane(runtime_lane)
 
+    # Compute admissibility per calibration-program §C / ADR 0009.
+    # Bench-air packets always route to the physical-sensor path (tier=None);
+    # adapter-derived sources flow through source-provenance-record, not here.
+    admissibility = compute_admissibility(build_admissibility_facts(payload))
+
     normalized = {
         "observation_id": make_ref("obs"),
         "node_id": payload["node_id"],
@@ -114,6 +161,11 @@ def normalize_packet(
             "firmware_version": payload["firmware_version"],
             "raw_packet_ref": make_ref("rawpkt"),
         },
+        # Per ADR 0009: admissibility decision lives on normalized observations
+        # only, never back-propagated to the canonical schema. Empty reasons
+        # list when admissible; populated reason codes when not.
+        "admissible_to_calibration_dataset": admissibility.admissible,
+        "admissibility_reasons": admissibility.reasons,
         "versioning": versioning_payload(lane=resolved_lane),
         "raw_packet": payload,
     }

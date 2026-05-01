@@ -1557,6 +1557,51 @@ def confidence_band(confidence: float) -> str:
     return "low"
 
 
+_ADMISSIBILITY_REASON_PROSE = {
+    # Calibration-program §C reason codes
+    "node_identity_missing": "node identity not registered for this parcel",
+    "deployment_maturity_insufficient": "node has not reached deployment maturity v1.0",
+    "deployment_class_mismatch": "deployment class disagrees with installation declaration",
+    "burn_in_incomplete": "sensor burn-in window has not completed",
+    "reference_calibration_stale": "reference calibration is missing or beyond cadence",
+    "representativeness_class_d": "placement representativeness is unfit for shared inference",
+    "fixture_unverified": "protective fixture has not passed acceptance test",
+    "sensor_health_degraded": "sensor read failures detected since last reset",
+    # Adapter-trust §C reason codes
+    "adapter_source_missing": "adapter source authority file is not registered",
+    "contract_version_drift": "adapter contract version drifted from pinned version",
+    "onboarding_missing": "adapter onboarding gate has not passed for this parcel",
+    "credentials_expired": "adapter credentials are expired or never verified",
+    "cadence_stale": "adapter reading is stale beyond refresh cadence",
+    "tier_insufficient": "adapter tier does not satisfy the consumer's trust requirement",
+    "uncertainty_out_of_bounds": "adapter-reported uncertainty exceeds spec bound",
+    "source_incident_open": "adapter source has an open incident or deprecation",
+}
+
+
+def _admissibility_limitation_summary(reasons: list[str]) -> str | None:
+    """Render an inadmissibility reason list as a single human-readable line.
+
+    Used as a `limitations` entry in the explanation payload so existing UX
+    renderers naturally surface the policy reasons without needing to read
+    the structured `admissibility` object. None when the observation is
+    admissible (no surfacing needed).
+    """
+    if not reasons:
+        return None
+    rendered = []
+    for code in reasons[:3]:  # cap at 3 to keep the line readable
+        prose = _ADMISSIBILITY_REASON_PROSE.get(code, code)
+        rendered.append(prose)
+    suffix = "" if len(reasons) <= 3 else f" (+{len(reasons) - 3} more)"
+    return (
+        "Observation is not admissible to the calibration dataset: "
+        + "; ".join(rendered)
+        + suffix
+        + "."
+    )
+
+
 def build_explanation_payload(
     *,
     confidence: float,
@@ -1569,6 +1614,8 @@ def build_explanation_payload(
     parcel_context: dict | None,
     shared_context: dict | None,
     public_context: dict | None,
+    admissible_to_calibration_dataset: bool | None = None,
+    admissibility_reasons: list[str] | None = None,
 ) -> dict:
     sorted_drivers = sorted(
         (item for item in evidence_contributions if item["role"] == "driver"),
@@ -1582,6 +1629,16 @@ def build_explanation_payload(
     )
     drivers = [item["summary"] for item in sorted_drivers[:3]]
     limitations = [item["summary"] for item in sorted_limitations[:3]]
+
+    # Surface inadmissibility as a high-priority limitation entry. Existing
+    # UX renderers that read `limitations` get the policy reason for free
+    # without needing to know about the admissibility schema.
+    admissibility_line = _admissibility_limitation_summary(admissibility_reasons or [])
+    if admissibility_line:
+        limitations = [admissibility_line] + limitations
+        # Re-cap to 3 so the field stays readable.
+        limitations = limitations[:3]
+
     if not limitations:
         limitations = ["Evidence limits are currently low enough that few explicit caveats were generated."]
 
@@ -1590,7 +1647,7 @@ def build_explanation_payload(
         f"{confidence_band(confidence)} confidence."
     )
 
-    return {
+    payload = {
         "headline": headline,
         "basis": {
             "evidence_mode": evidence_mode,
@@ -1611,6 +1668,17 @@ def build_explanation_payload(
         "divergence_summary": [item["contrast"]["summary"] for item in contrastive_explanations[:2]],
         "top_divergence_records": divergence_records[:3],
     }
+
+    # Per ADR 0009: structured admissibility object is the durable artifact.
+    # Only surface when ingest actually stamped a decision on the observation
+    # (v0.1 lane normalizers don't, so absence is meaningful — don't fabricate).
+    if admissible_to_calibration_dataset is not None:
+        payload["admissibility"] = {
+            "admissible_to_calibration_dataset": admissible_to_calibration_dataset,
+            "admissibility_reasons": list(admissibility_reasons or []),
+        }
+
+    return payload
 
 
 def circuit_observation_to_equipment_state(normalized_circuit: dict) -> dict:
@@ -1877,6 +1945,12 @@ def infer_parcel_state(
         parcel_context=parcel_context,
         shared_context=shared_context,
         public_context=public_context,
+        # G15 step 3: pass through admissibility decision attached by ingest
+        # (G15 step 2). Absent on v0.1 lane normalized observations; present
+        # on v1.0+ bench-air normalized observations. None signals "ingest
+        # did not stamp a decision," not "decision was admissible."
+        admissible_to_calibration_dataset=payload.get("admissible_to_calibration_dataset"),
+        admissibility_reasons=payload.get("admissibility_reasons"),
     )
 
     trust_score = compute_trust_score(

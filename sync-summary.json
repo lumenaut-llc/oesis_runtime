@@ -1,0 +1,37 @@
+
+[sync-runtime-assets] contracts @ cb08b673a655
+  [32mPASS[0m v0.1: copied=0 removed=0 unchanged=30
+  [32mPASS[0m v1.0: copied=0 removed=0 unchanged=19
+  [36mINFO[0m v1.5: copied=1 removed=0 unchanged=5
+{
+  "steps": [
+    {
+      "command": "sync-runtime-assets",
+      "contracts_ref": "cb08b673a655208723c3d3cc59202b3d5b9f533a",
+      "lanes": {
+        "v0.1": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 30
+        },
+        "v1.0": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 19
+        },
+        "v1.5": {
+          "copied": [
+            "source-provenance-record.example.json"
+          ],
+          "removed": [],
+          "unchanged": 5
+        }
+      },
+      "files_copied": 1,
+      "files_removed": 0,
+      "files_unchanged": 54,
+      "dry_run": false
+    }
+  ],
+  "exit_code": 0
+}

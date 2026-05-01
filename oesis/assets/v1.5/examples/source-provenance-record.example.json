@@ -18,7 +18,12 @@
         "intervention_context",
         "verification_context"
       ],
-      "raw_ref": "obs_hvac_ct_0007"
+      "raw_ref": "obs_hvac_ct_0007",
+      "adapter_source_ref": "adapter:ct_clamp_hvac/v1.0/source-authority.md",
+      "adapter_contract_version": "ct-clamp-hvac.v1.2",
+      "adapter_onboarding_ref": "onboarding:parcel_demo_001:ct_clamp_hvac:2026-04-01T15:00:00Z",
+      "adapter_credential_last_verified_at": "2026-04-14T08:00:00Z",
+      "adapter_tier": "tier_2_adapter"
     },
     {
       "signal_key": "outdoor_air_intake",

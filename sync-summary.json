@@ -1,0 +1,38 @@
+
+[sync-runtime-assets] contracts @ c9ae5e6d0fad
+  [32mPASS[0m v0.1: copied=0 removed=0 unchanged=30
+  [36mINFO[0m v1.0: copied=2 removed=0 unchanged=17
+  [32mPASS[0m v1.5: copied=0 removed=0 unchanged=6
+{
+  "steps": [
+    {
+      "command": "sync-runtime-assets",
+      "contracts_ref": "c9ae5e6d0fad742278583e7729ce2f437412d74a",
+      "lanes": {
+        "v0.1": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 30
+        },
+        "v1.0": {
+          "copied": [
+            "node-observation-mast-lite.example.json",
+            "node-observation.example.json"
+          ],
+          "removed": [],
+          "unchanged": 17
+        },
+        "v1.5": {
+          "copied": [],
+          "removed": [],
+          "unchanged": 6
+        }
+      },
+      "files_copied": 2,
+      "files_removed": 0,
+      "files_unchanged": 53,
+      "dry_run": false
+    }
+  ],
+  "exit_code": 0
+}
